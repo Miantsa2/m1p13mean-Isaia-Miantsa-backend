@@ -27,4 +27,5 @@ router.get('/google/callback',
     // res.redirect(`http://localhost:4200/google-success?token=${token}`);
   }
 );
+
 module.exports = router;
