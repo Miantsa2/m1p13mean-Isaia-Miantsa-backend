@@ -24,7 +24,11 @@ router.get('/google/callback',
 
     const token = createToken(req.user);
     
-    res.redirect(`http://localhost:4200/login`);
+    // res.redirect(`http://localhost:4200/login`);
+    res.redirect(`http://localhost:4200/auth/callback?token=${token}&role=${req.user.role}`
+);
+
+
   }
 );
 

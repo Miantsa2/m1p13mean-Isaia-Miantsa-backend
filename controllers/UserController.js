@@ -11,7 +11,7 @@ exports.signup = async (req, res) => {
     // Vérifier email
     const exist = await User.findOne({ email });
     if (exist) {
-      return res.status(400).json({ message: "Email déjà utilisé" });
+      return res.status(400).json({ message: "This Email is already used" });
     }
     const hash = await bcrypt.hash(password, 10);
     const user = await User.create({
@@ -50,13 +50,13 @@ exports.login = async (req, res) => {
 
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(404).json({ message: "Utilisateur introuvable" });
+      return res.status(404).json({ message: "This user doesn't exist" });
     }
 
   
     const ok = await bcrypt.compare(password, user.password);
     if (!ok) {
-      return res.status(401).json({ message: "Mot de passe incorrect" });
+      return res.status(401).json({ message: "Wrong password" });
     }
 
     const token = createToken(user);
