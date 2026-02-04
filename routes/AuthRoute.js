@@ -23,8 +23,8 @@ router.get('/google/callback',
   function(req, res) {
 
     const token = createToken(req.user);
-    res.status(200).json({ token });
-    // res.redirect(`http://localhost:4200/google-success?token=${token}`);
+    
+    res.redirect(`http://localhost:4200/login`);
   }
 );
 
