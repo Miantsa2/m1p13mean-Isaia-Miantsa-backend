@@ -37,6 +37,8 @@ mongoose.connect(process.env.MONGO_URI)
 // Routes
 app.use('/mean/auth', require('./routes/AuthRoute'));
 app.use('/mean/client', require('./routes/ClientRoute'));
+app.use('/mean/user', require('./routes/UserRoute'));
+
 
 app.listen(PORT, () => console.log(`Serveur démarré sur le port
 ${PORT}`));
