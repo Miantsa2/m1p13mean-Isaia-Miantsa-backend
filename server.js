@@ -38,6 +38,7 @@ mongoose.connect(process.env.MONGO_URI)
 app.use('/mean/auth', require('./routes/AuthRoute'));
 app.use('/mean/client', require('./routes/ClientRoute'));
 app.use('/mean/user', require('./routes/UserRoute'));
+app.use('/mean/center', require('./routes/CentreRoute'));
 app.use('/mean/room', require('./routes/SalleRoute'));
 
 
