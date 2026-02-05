@@ -5,13 +5,6 @@ const client = require("../models/Client");
 const user = require("../models/User");
 const auth= require('../middlewares/Auth');
 
-// router.get("/home", auth(["client"]), (req, res) => {
-//   res.json({ message: `Bienvenue ${req.user.email} sur l'accueil client` });
-// });
-
-// router.get("/test", auth(["admin"]), (req, res) => {
-//   res.json({ message: `Bienvenue ${req.user.email} sur l'accueil admin` });
-// });
 
 // Supprimer 
 router.delete('/:id', async (req, res) => {
