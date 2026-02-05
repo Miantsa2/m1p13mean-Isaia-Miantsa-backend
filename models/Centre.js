@@ -21,7 +21,7 @@ const CentreSchema = new mongoose.Schema({
             ref: "Salle"
         }
     ],
-    prix_metre_carre: Number
+    prixMetreCarre: Number
 
    
   
