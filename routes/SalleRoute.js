@@ -4,7 +4,7 @@ const Salle = require("../models/Salle");
 const auth= require('../middlewares/Auth');
 
 // Lire tous les salles
-router.get('/getRoom', async (req, res) => {
+router.get('/getRoom', auth(["admin"]),async (req, res) => {
   try {
     const salles = await Salle.find();
     res.json(salles);
@@ -14,7 +14,7 @@ router.get('/getRoom', async (req, res) => {
 });
 
 // Créer un salle
-router.post("/createRoom", async (req, res) => {
+router.post("/createRoom",auth(["admin"]), async (req, res) => {
   try {
     const salle = new Salle(req.body);
     await salle.save();
@@ -60,7 +60,7 @@ router.put("/updateRoom/:id", auth(["admin"]), async (req, res) => {
 
 
 // Supprimer une salle
-router.delete("/deleteRoom/:id", async (req, res) => {
+router.delete("/deleteRoom/:id",auth(["admin"]), async (req, res) => {
   try {
     const salle = await Salle.findByIdAndDelete(req.params.id);
     if (!salle) {
@@ -86,7 +86,7 @@ router.get("/freeRoom", auth(["admin"]), async (req, res) => {
 
 // filtre : statut, date creation (ordre), metre carre
 
-router.get("/filterRoom", async (req, res) => {
+router.get("/filterRoom",auth(["admin"]), async (req, res) => {
   try {
     const { statut, ordre, taille } = req.query;
     const filter = {};
