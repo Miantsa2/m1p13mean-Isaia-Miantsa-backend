@@ -34,12 +34,16 @@ mongoose.connect(process.env.MONGO_URI)
  .then(() => console.log("MongoDB connecté"))
  .catch(err => console.log(err));
 
+app.use('/assets', express.static('assets'));
+
 // Routes
 app.use('/mean/auth', require('./routes/AuthRoute'));
 app.use('/mean/client', require('./routes/ClientRoute'));
 app.use('/mean/user', require('./routes/UserRoute'));
 app.use('/mean/center', require('./routes/CentreRoute'));
 app.use('/mean/room', require('./routes/SalleRoute'));
+app.use('/mean/categorie', require('./routes/CategorieRoute'));
+app.use('/mean/boutique', require('./routes/BoutiqueRoute'));
 
 
 
