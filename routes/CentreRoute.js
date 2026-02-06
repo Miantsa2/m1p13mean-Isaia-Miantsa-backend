@@ -23,18 +23,18 @@ router.get("/getCenter", async (req, res) => {
 });
 
 
-
-router.put("/updateCenter/:id",auth(["admin"]), async (req, res) => {
+router.put("/updateCenter/:id", async (req, res) => {
   try {
-    const centre = await Centre.findByIdAndUpdate(
+    const updatedCentre = await Centre.findByIdAndUpdate(
       req.params.id,
-      req.body,
-      { new: true }
+      { $set: req.body }, // $set permet de mettre à jour uniquement les champs envoyés
+      { new: true, runValidators: true }
     );
-    if (!centre) {
-      return res.status(404).json({ message: "Center not found" });
+
+    if (!updatedCentre) {
+      return res.status(404).json({ message: "Centre non trouvé" });
     }
-    res.json(centre);
+    res.json(updatedCentre);
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
