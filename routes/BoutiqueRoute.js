@@ -66,19 +66,26 @@ router.post("/createBoutique", auth(["admin"]), async (req, res) => {
 // Modifier une boutique
 router.put("/updateBoutique/:id", auth(["admin"]), async (req, res) => {
   try {
-    const boutique = await Boutique.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true }
-    );
+    const boutique = await Boutique.findById(req.params.id);
+    if(!boutique) return res.status(404).json({ message: "Boutique not found" });
 
-    if (!boutique) {
-      return res.status(404).json({ message: "Boutique not found" });
+    if(req.body.salle && req.body.salle.toString() !== (boutique.salle?._id.toString() || '')) {
+      if(boutique.salle) {
+        await Salle.findByIdAndUpdate(boutique.salle, { statut: "libre" });
+      }
+
+      await Salle.findByIdAndUpdate(req.body.salle, { statut: "occupee" });
     }
 
+    boutique.salle = req.body.salle;
+    await boutique.save();
+
+    await boutique.populate("salle");
+
     res.json(boutique);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
+  } catch(err) {
+    console.error(err);
+    res.status(500).json({ message: err.message });
   }
 });
 

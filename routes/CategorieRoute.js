@@ -4,7 +4,7 @@ const Categorie = require('../models/Categorie');
 const auth = require('../middlewares/Auth');
 
 // Lire toutes les catégories
-router.get('/getCategorie', auth(["admin"]),async (req, res) => {
+router.get('/getCategorie', auth(["admin", "boutique"]),async (req, res) => {
   try {
     const categories = await Categorie.find();
     res.json(categories);
@@ -14,7 +14,7 @@ router.get('/getCategorie', auth(["admin"]),async (req, res) => {
 });
 
 // Créer une catégorie
-router.post("/createCategorie",auth(["admin"]), async (req, res) => {
+router.post("/createCategorie",auth(["admin", "boutique"]), async (req, res) => {
   try {
     const categorie = new Categorie(req.body);
     await categorie.save();
@@ -25,7 +25,7 @@ router.post("/createCategorie",auth(["admin"]), async (req, res) => {
 });
 
 // get un categorie par id
-router.get("/getCategorieId/:id",auth(["admin"]), async (req, res) => {
+router.get("/getCategorieId/:id",auth(["admin", "boutique"]), async (req, res) => {
   try {
     const categorie = await Categorie.findById(req.params.id);
     if (!categorie) {
@@ -38,7 +38,7 @@ router.get("/getCategorieId/:id",auth(["admin"]), async (req, res) => {
 });
 
 // Supprimer une catégorie
-router.delete("/deleteCategorie/:id",auth(["admin"]), async (req, res) => {
+router.delete("/deleteCategorie/:id",auth(["admin", "boutique"]), async (req, res) => {
   try {
     const categorie = await Categorie.findByIdAndDelete(req.params.id);
     if (!categorie) {
