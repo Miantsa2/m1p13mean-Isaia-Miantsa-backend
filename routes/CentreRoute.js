@@ -41,6 +41,31 @@ router.put("/updateCenter/:id",auth(["admin"]), async (req, res) => {
 });
 
 
+router.put("/updatePrice/:id", auth(["admin"]), async (req, res) => {
+  try {
+    const { prixMetreCarre } = req.body;
+
+    if (prixMetreCarre === undefined || prixMetreCarre < 0) {
+      return res.status(400).json({ message: "Prix invalide" });
+    }
+
+    const centre = await Centre.findByIdAndUpdate(
+      req.params.id,
+      { prixMetreCarre: prixMetreCarre }
+     
+    );
+
+    if (!centre) {
+      return res.status(404).json({ message: "Centre non trouvé" });
+    }
+
+    res.json(centre);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+
 router.delete("/deleteCenter/:id",auth(["admin"]), async (req, res) => {
   try {
     const centre = await Centre.findByIdAndDelete(req.params.id);
