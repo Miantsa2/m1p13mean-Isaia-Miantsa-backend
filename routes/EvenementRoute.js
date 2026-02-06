@@ -108,4 +108,84 @@ router.get("/getEvent", async (req, res) => {
     }
 });
 
+router.get("/SortEvent", async (req, res) => {
+    try {
+        const { order } = req.query; 
+        const sortOrder = order === "asc" ? 1 : -1;
+        const query = {}; 
+
+        const evs = await Evenement.find(query) 
+            .populate("boutique")
+            .populate("centre")
+            .sort({ dateDebut: sortOrder });
+
+        res.status(200).json(evs);
+    } catch (err) {
+        res.status(500).json({ 
+            message: "Erreur lors de la récupération", 
+            error: err.message 
+        });
+    }
+});
+
+
+
+router.get("/FilterEventCenter", async (req, res) => {
+    try {
+
+        let query = { 
+            $or: [
+                { boutique: null }, 
+                { boutique: { $exists: false } }
+            ] 
+        };
+
+        const {statut, order } = req.query;
+        
+        if (statut) query.statut = statut;
+        const sortOrder = order === "asc" ? 1 : -1;
+        const evs = await Evenement.find(query)
+            .populate("centre")
+            .sort({ dateDebut: sortOrder });
+
+        res.status(200).json(evs);
+    } catch (err) {
+        res.status(500).json({ 
+            message: "Erreur lors de la récupération", 
+            error: err.message 
+        });
+    }
+});
+
+
+router.get("/FilterEventStore", async (req, res) => {
+    try {
+
+        let query = { 
+            $or: [
+                { centre: null }, 
+                { centre: { $exists: false } }
+            ] 
+        };
+
+        const { boutiqueId, statut, order } = req.query;
+
+        if (boutiqueId) query.boutique = boutiqueId;
+        
+        if (statut) query.statut = statut;
+        const sortOrder = order === "asc" ? 1 : -1;
+        const evs = await Evenement.find(query)
+            .populate("boutique")
+            .sort({ dateDebut: sortOrder });
+
+        res.status(200).json(evs);
+    } catch (err) {
+        res.status(500).json({ 
+            message: "Erreur lors de la récupération", 
+            error: err.message 
+        });
+    }
+});
+
+
 module.exports = router;
