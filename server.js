@@ -44,6 +44,8 @@ app.use('/mean/center', require('./routes/CentreRoute'));
 app.use('/mean/room', require('./routes/SalleRoute'));
 app.use('/mean/categorie', require('./routes/CategorieRoute'));
 app.use('/mean/boutique', require('./routes/BoutiqueRoute'));
+app.use('/mean/event', require('./routes/EvenementRoute'));
+
 
 
 
