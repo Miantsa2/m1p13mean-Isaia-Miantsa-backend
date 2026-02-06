@@ -1,18 +1,27 @@
 const mongoose = require("mongoose");
-
 const CentreSchema = new mongoose.Schema({
-    nom: String,
+    nom: { type: String, required: true },
     adresse: String,
     telephone: String,
     email: String,
-    placeParking: Number,
+    placeParking: { type: Number, default: 0 },
     logo: String,
     description: String,
     horaires: [
         {
-            jour: String,
-            ouverture: String,
-            fermeture: String
+            jour: { 
+                type: String, 
+                required: [true, "Day required"],
+                enum: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] // Sécurité supplémentaire
+            },
+            ouverture: { 
+                type: String, 
+                required: [true, "Open Time required"] 
+            },
+            fermeture: { 
+                type: String, 
+                required: [true, "Close Time required"] 
+            }
         }
     ],
     salles: [
@@ -21,10 +30,7 @@ const CentreSchema = new mongoose.Schema({
             ref: "Salle"
         }
     ],
-    prixMetreCarre: Number
-
-   
-  
+    prixMetreCarre: { type: Number, required: true, default: 0 }
 }, { timestamps: true });
 
 module.exports = mongoose.model("Centre", CentreSchema);

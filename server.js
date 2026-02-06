@@ -45,6 +45,9 @@ app.use('/mean/room', require('./routes/SalleRoute'));
 app.use('/mean/categorie', require('./routes/CategorieRoute'));
 app.use('/mean/boutique', require('./routes/BoutiqueRoute'));
 app.use('/mean/produit', require('./routes/ProduitRoute'));
+app.use('/mean/event', require('./routes/EvenementRoute'));
+
+
 
 
 app.listen(PORT, () => console.log(`Serveur démarré sur le port
