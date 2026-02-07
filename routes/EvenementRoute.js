@@ -22,7 +22,6 @@ router.post("/createEvent", async (req, res) => {
 router.get("/getAllEvent", async (req, res) => {
     try {
         const evs = await Evenement.find()
-            .populate("centre") 
             .populate("boutique")
             .sort({ dateDebut: -1 }); 
         res.status(200).json(evs);
@@ -34,7 +33,6 @@ router.get("/getAllEvent", async (req, res) => {
 router.get("/getEventById/:id", async (req, res) => {
     try {
         const ev = await Evenement.findById(req.params.id)
-            .populate("centre")
             .populate("boutique");
         if (!ev) return res.status(404).json({ message: "Événement introuvable." });
         res.status(200).json(ev);
@@ -69,41 +67,43 @@ router.delete("/deleteEvent/:id", async (req, res) => {
 router.get("/getEvent", async (req, res) => {
     try {
         const maintenant = new Date();
-        await Evenement.updateMany(
-            { 
-                dateFin: { $lt: maintenant }, 
-                statut: { $nin: ["termine", "refuse"] } 
-            },
-            { $set: { statut: "termine" } }
-        );
-        let query = {};
-        const { type } = req.query; 
 
-        if (type === 'boutique') {
-            query = { 
-                $or: [
-                    { centre: null }, 
-                    { centre: { $exists: false } }
-                ] 
+        // Mise à jour auto des événements terminés
+        await Evenement.updateMany(
+            {
+                dateFin: { $lt: maintenant },
+                statut: { $nin: ["finished", "refused"] }
+            },
+            { $set: { statut: "finished" } }
+        );
+
+        const { type } = req.query;
+        let query = {};
+
+        if (type === "boutique") {
+            // événements AVEC boutique
+            query = {
+                boutique: { $exists: true, $ne: null }
             };
-        } else if (type === 'centre') {
-            query = { 
+        } else {
+            // événements SANS boutique
+            query = {
                 $or: [
-                    { boutique: null }, 
+                    { boutique: null },
                     { boutique: { $exists: false } }
-                ] 
+                ]
             };
         }
+
         const evs = await Evenement.find(query)
             .populate("boutique")
-            .populate("centre") 
             .sort({ dateDebut: -1 });
 
         res.status(200).json(evs);
     } catch (err) {
-        res.status(500).json({ 
-            message: "Erreur lors de la récupération des événements", 
-            error: err.message 
+        res.status(500).json({
+            message: "Erreur lors de la récupération des événements",
+            error: err.message
         });
     }
 });
@@ -116,7 +116,6 @@ router.get("/SortEvent", async (req, res) => {
 
         const evs = await Evenement.find(query) 
             .populate("boutique")
-            .populate("centre")
             .sort({ dateDebut: sortOrder });
 
         res.status(200).json(evs);
@@ -145,7 +144,6 @@ router.get("/FilterEventCenter", async (req, res) => {
         if (statut) query.statut = statut;
         const sortOrder = order === "asc" ? 1 : -1;
         const evs = await Evenement.find(query)
-            .populate("centre")
             .sort({ dateDebut: sortOrder });
 
         res.status(200).json(evs);
@@ -161,11 +159,8 @@ router.get("/FilterEventCenter", async (req, res) => {
 router.get("/FilterEventStore", async (req, res) => {
     try {
 
-        let query = { 
-            $or: [
-                { centre: null }, 
-                { centre: { $exists: false } }
-            ] 
+         query = {
+                boutique: { $exists: true, $ne: null }
         };
 
         const { boutiqueId, statut, order } = req.query;
