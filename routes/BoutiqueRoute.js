@@ -4,6 +4,7 @@ const Boutique = require("../models/Boutique");
 const Salle = require("../models/Salle")
 const auth = require("../middlewares/Auth");
 const User = require("../models/User");
+const Produit = require("../models/Produit");
 
 // Lire toutes les boutiques
 router.get("/getBoutiques", auth(["admin"]), async (req, res) => {
@@ -14,7 +15,7 @@ router.get("/getBoutiques", auth(["admin"]), async (req, res) => {
       .populate({
         path: "salle",
         select: "reference tailleMetreCarre"
-    });
+      });
 
     res.json(boutiques);
   } catch (error) {
@@ -22,11 +23,26 @@ router.get("/getBoutiques", auth(["admin"]), async (req, res) => {
   }
 });
 
-
-// Lire une boutique par ID
-router.get("/getBoutique/:id", auth(["admin"]), async (req, res) => {
+// Lire une boutique spécifique par son ID
+router.get("/getBoutique/:id", auth(["admin", "boutique"]), async (req, res) => {
   try {
     const boutique = await Boutique.findById(req.params.id)
+      .populate("user")
+      .populate("categorie")
+      .populate("salle");
+
+    if (!boutique) return res.status(404).json({ message: "Boutique introuvable" });
+    res.json(boutique);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+
+// Lire une boutique par sa connection
+router.get("/getBoutiqueByUser", auth(["admin", "boutique"]), async (req, res) => {
+  try {
+    const boutique = await Boutique.findOne({ user: req.user.id })
       .populate("user")
       .populate("categorie")
       .populate("salle");
@@ -40,6 +56,7 @@ router.get("/getBoutique/:id", auth(["admin"]), async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
+
 
 
 // Créer une boutique
@@ -64,33 +81,39 @@ router.post("/createBoutique", auth(["admin"]), async (req, res) => {
 
 
 // Modifier une boutique
-router.put("/updateBoutique/:id", auth(["admin"]), async (req, res) => {
+router.put("/updateBoutique/:id", auth(["admin", "boutique"]), async (req, res) => {
   try {
     const boutique = await Boutique.findById(req.params.id);
-    if(!boutique) return res.status(404).json({ message: "Boutique not found" });
+    if (!boutique) return res.status(404).json({ message: "Boutique not found" });
 
-    if(req.body.salle && req.body.salle.toString() !== (boutique.salle?._id.toString() || '')) {
-      if(boutique.salle) {
-        await Salle.findByIdAndUpdate(boutique.salle, { statut: "libre" });
-      }
-
-      await Salle.findByIdAndUpdate(req.body.salle, { statut: "occupee" });
+    // voir si c'est le boutique en question
+    if (req.user.role === "boutique" && boutique.user.toString() !== req.user.id) {
+      return res.status(403).json({ message: "Vous n'êtes pas autorisé à modifier cette boutique" });
     }
 
-    boutique.salle = req.body.salle;
+    const { nom, telephone, horaires, salle } = req.body;
+    
+    if (nom) boutique.nom = nom;
+    if (telephone) boutique.telephone = telephone;
+    if (horaires) boutique.horaires = horaires;
+
+    // Seul l'admin peut changer la salle
+    if (req.user.role === "admin" && salle && salle !== boutique.salle?.toString()) {
+      if (boutique.salle) await Salle.findByIdAndUpdate(boutique.salle, { statut: "libre" });
+      await Salle.findByIdAndUpdate(salle, { statut: "occupee" });
+      boutique.salle = salle;
+    }
+
     await boutique.save();
-
-    await boutique.populate("salle");
-
-    res.json(boutique);
-  } catch(err) {
-    console.error(err);
+    const updatedBoutique = await boutique.populate("user categorie salle");
+    
+    res.json(updatedBoutique);
+  } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
-
-// Supprimer une boutique
+// Supprimer une boutique 
 router.delete("/deleteBoutique/:id", auth(["admin"]), async (req, res) => {
   try {
     const boutique = await Boutique.findById(req.params.id);
@@ -98,6 +121,9 @@ router.delete("/deleteBoutique/:id", auth(["admin"]), async (req, res) => {
     if (!boutique) {
       return res.status(404).json({ message: "Boutique not found" });
     }
+
+    // Supprimer les produits associés
+    await Produit.deleteMany({ boutique: req.params.id });
 
     // Libérer la salle
     const salleId =
@@ -117,12 +143,11 @@ router.delete("/deleteBoutique/:id", auth(["admin"]), async (req, res) => {
     // Supprimer la boutique à la fin
     await boutique.deleteOne();
 
-    res.json({ message: "Boutique deleted successfully and room free again" });
+    res.json({ message: "Boutique, user, products deleted successfully and room free again" });
   } catch (error) {
     console.error("DELETE BOUTIQUE ERROR:", error);
     res.status(500).json({ message: error.message });
   }
 });
-
 
 module.exports = router;
