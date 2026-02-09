@@ -40,7 +40,7 @@ router.get("/getBoutique/:id", auth(["admin", "boutique"]), async (req, res) => 
 
 
 // Lire une boutique par sa connection
-router.get("/getBoutiqueByUser", auth(["admin", "boutique"]), async (req, res) => {
+router.get("/getBoutiqueByUser", auth([]), async (req, res) => {
   try {
     const boutique = await Boutique.findOne({ user: req.user.id })
       .populate("user")
