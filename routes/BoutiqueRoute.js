@@ -40,7 +40,7 @@ router.get("/getBoutique/:id", auth(["admin", "boutique"]), async (req, res) => 
 
 
 // Lire une boutique par sa connection
-router.get("/getBoutiqueByUser", auth(["admin", "boutique"]), async (req, res) => {
+router.get("/getBoutiqueByUser", auth([]), async (req, res) => {
   try {
     const boutique = await Boutique.findOne({ user: req.user.id })
       .populate("user")
@@ -149,5 +149,65 @@ router.delete("/deleteBoutique/:id", auth(["admin"]), async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
+
+router.put("/updateNotif/:id", auth([]), async (req, res) => {
+  try {
+    const { description, titre } = req.body;
+
+    if (!description) {
+      return res.status(400).json({ message: "description is required" });
+    }
+
+    const notification = {
+      description,
+      titre: titre || 'Notification',
+      envoyeur: req.user.id || null
+      // date_envoyee est auto
+    };
+
+    const boutique = await Boutique.findByIdAndUpdate(
+      req.params.id,
+      {
+        $push: {
+          notifications: notification
+        }
+      },
+      { new: true }
+    );
+
+    if (!boutique) {
+      return res.status(404).json({ message: "cannot find store" });
+    }
+
+    res.status(200).json({
+      message: "Notification added successfully",
+      notifications: boutique.notifications
+    });
+
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+
+
+router.put('/readNotif/:id/notifications/lue', async (req, res) => {
+    try {
+        const result = await Boutique.updateOne(
+            { _id: req.params.id },
+            // $[].est_lu signifie : "Pour chaque élément du tableau, passe est_lu à true"
+            { $set: { "notifications.$[].est_lue": true } }
+        );
+
+        if (result.modifiedCount === 0) {
+            return res.status(404).json({ message: "Aucune notification à mettre à jour" });
+        }
+
+        res.status(200).json({ message: "Notifications mises à jour !" });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 
 module.exports = router;

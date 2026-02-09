@@ -15,7 +15,10 @@ const BoutiqueSchema = new mongoose.Schema({
   }],
   notifications: [{
     description: String,
-    date_envoyee: { type: Date, default: Date.now }
+    date_envoyee: { type: Date, default: Date.now },
+    titre: String,
+    envoyeur: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    est_lue: { type: Boolean, default: false }
   }]
 }, { timestamps: true });
 
