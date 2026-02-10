@@ -140,8 +140,19 @@ router.delete("/deleteProduit/:id", auth(["boutique"]), async (req, res) => {
   }
 });
 
-module.exports = router;
+// Mettre à jour la disponibilité d'un produit
+router.patch("/updateAvailability/:id", auth(["boutique"]), async (req, res) => {
+    try {
+        const produit = await Produit.findById(req.params.id);
+        if (!produit) return res.status(404).json({ message: "Product not found" });
 
-// Si plus tard, je veux que chaque boutique ne voit que ses produits, 
-// je récupère l'id de la boutique depuis le token "req.user"
-// et filtrer automatiquement: "Produit.find({ boutique: req.user.boutiqueId })"
+        produit.isAvailable = !produit.isAvailable;
+        await produit.save();
+        
+        res.json({ isAvailable: produit.isAvailable });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+module.exports = router;
