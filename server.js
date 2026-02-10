@@ -46,6 +46,7 @@ app.use('/mean/categorie', require('./routes/CategorieRoute'));
 app.use('/mean/boutique', require('./routes/BoutiqueRoute'));
 app.use('/mean/produit', require('./routes/ProduitRoute'));
 app.use('/mean/event', require('./routes/EvenementRoute'));
+app.use('/mean/stock', require('./routes/StockRoute'));
 
 
 
