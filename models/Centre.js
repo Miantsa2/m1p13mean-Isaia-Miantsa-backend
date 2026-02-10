@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const CentreSchema = new mongoose.Schema({
+    user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },  
     nom: { type: String, required: true },
     adresse: String,
     telephone: String,
@@ -12,7 +13,7 @@ const CentreSchema = new mongoose.Schema({
             jour: { 
                 type: String, 
                 required: [true, "Day required"],
-                enum: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] // Sécurité supplémentaire
+                enum: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] 
             },
             ouverture: { 
                 type: String, 
@@ -30,7 +31,15 @@ const CentreSchema = new mongoose.Schema({
             ref: "Salle"
         }
     ],
-    prixMetreCarre: { type: Number, required: true, default: 0 }
+    prixMetreCarre: { type: Number, required: true, default: 0 },
+
+    notifications: [{
+        description: String,
+        date_envoyee: { type: Date, default: Date.now },
+        titre: String,
+        envoyeur: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+        est_lue: { type: Boolean, default: false }
+      }]
 }, { timestamps: true });
 
 module.exports = mongoose.model("Centre", CentreSchema);

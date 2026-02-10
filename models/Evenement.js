@@ -13,7 +13,12 @@ const EvenementSchema = new mongoose.Schema({
     boutique: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Boutique"
-    }
+    },
+     email_envoye: {
+        type: Boolean,
+        default: false,
+    },
+
 }, { timestamps: true });
 
 module.exports = mongoose.model("Evenement", EvenementSchema);
