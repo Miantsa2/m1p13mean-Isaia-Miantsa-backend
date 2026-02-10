@@ -155,4 +155,19 @@ router.patch("/updateAvailability/:id", auth(["boutique"]), async (req, res) => 
     }
 });
 
+// Route pour mettre à jour la promotion
+router.put("/updatePromo/:id", auth(["boutique"]), async (req, res) => {
+  try {
+    const { promotions } = req.body;
+    const produit = await Produit.findByIdAndUpdate(
+      req.params.id,
+      { promotions },
+      { new: true }
+    );
+    res.json(produit);
+  }catch(error) {
+    res.status(500).json({ message: error.message});
+  }
+});
+
 module.exports = router;
