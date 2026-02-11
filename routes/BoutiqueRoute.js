@@ -9,7 +9,7 @@ const Centre = require("../models/Centre");
 const Charge = require("../models/Charge");
 
 // Lire toutes les boutiques
-router.get("/getBoutiques", auth(["admin"]), async (req, res) => {
+router.get("/getBoutiques", async (req, res) => {
   try {
     const boutiques = await Boutique.find()
       .populate("user")
@@ -114,6 +114,21 @@ router.put("/updateBoutique/:id", auth(["admin", "boutique"]), async (req, res) 
     res.status(500).json({ message: err.message });
   }
 });
+
+// Update un logo pour une boutique
+router.put("/updateLogoBoutique/:id", auth(["admin", "boutique"]), async (req, res) => {
+  try {
+      const updated = await Boutique.findByIdAndUpdate(
+          req.params.id,
+          { logo: req.body.logo },
+          { new: true }
+      );
+      res.status(200).json(updated);
+  } catch (err) {
+      res.status(500).json({ message: err.message });
+  }
+});
+
 
 // Supprimer une boutique 
 router.delete("/deleteBoutique/:id", auth(["admin"]), async (req, res) => {

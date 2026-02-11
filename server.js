@@ -1,4 +1,4 @@
-
+const path = require('path');
 const mongoose = require('mongoose');
 const cors = require('cors');
 require('dotenv').config();
@@ -34,7 +34,7 @@ mongoose.connect(process.env.MONGO_URI)
  .then(() => console.log("MongoDB connecté"))
  .catch(err => console.log(err));
 
-app.use('/assets', express.static('assets'));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Routes
 app.use('/mean/auth', require('./routes/AuthRoute'));
