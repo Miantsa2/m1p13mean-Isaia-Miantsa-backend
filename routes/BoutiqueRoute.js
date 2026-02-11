@@ -5,6 +5,8 @@ const Salle = require("../models/Salle")
 const auth = require("../middlewares/Auth");
 const User = require("../models/User");
 const Produit = require("../models/Produit");
+const Centre = require("../models/Centre");
+const Charge = require("../models/Charge");
 
 // Lire toutes les boutiques
 router.get("/getBoutiques", auth(["admin"]), async (req, res) => {
@@ -208,6 +210,86 @@ router.put('/readNotif/:id/notifications/lue', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+
+
+//calcule loyer
+router.get("/loyer/:id", async (req, res) => {
+  try {
+    const boutique = await Boutique.findById(req.params.id).populate("salle");
+    if (!boutique) return res.status(404).json({ message: "Boutique not found" });
+
+    const centre = await Centre.findOne({ salles: boutique.salle._id });
+    if (!centre) return res.status(404).json({ message: "Centre not found" });
+
+    const loyer = boutique.salle.tailleMetreCarre * centre.prixMetreCarre;
+    res.json({ loyer });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: err.message });
+  }
+});
+
+
+
+
+router.get('/loyernonpayees', async (req, res) => {
+  try {
+    const { mois, annee, statut } = req.query;  
+
+    if (!mois || !annee) return res.status(400).json({ message: 'Mois et année requis' });
+
+    const startDate = new Date(Number(annee), Number(mois) - 1, 1);
+    const endDate = new Date(Number(annee), Number(mois), 0, 23, 59, 59);
+
+    const chargesPayees = await Charge.find({
+      statut,
+      date_limite: { $gte: startDate, $lte: endDate },
+      reference:'RENT001'
+    }).distinct('boutique');
+
+    const boutiques = await Boutique.find({
+      _id: { $nin: chargesPayees }
+    });
+
+    res.json(boutiques);
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+
+
+router.get('/loyerpaye', async (req, res) => {
+  const { mois, annee } = req.query;
+
+  if (!mois || !annee) {
+    return res.status(400).json({ message: 'Mois et année requis' });
+  }
+
+  try {
+    const startDate = new Date(parseInt(annee), parseInt(mois) - 1, 1);
+    const endDate = new Date(parseInt(annee), parseInt(mois), 0, 23, 59, 59);
+    const chargesPayees = await Charge.find({ 
+      reference: 'RENT001',
+      statut: 'paye',
+      date_limite: { $gte: startDate, $lte: endDate }
+    }).populate('boutique'); // on récupère les infos de la boutique
+
+    const events = chargesPayees.map(charge => ({
+      title: charge.boutique?.nom || 'Boutique inconnue',
+      start: charge.date_limite.toISOString().split('T')[0],
+      color: '#16a34a', // vert pour payé
+    }));
+
+    res.json(events);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: err.message });
+  }
+});
+
 
 
 module.exports = router;

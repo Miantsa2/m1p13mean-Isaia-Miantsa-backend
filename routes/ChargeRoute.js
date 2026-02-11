@@ -13,7 +13,7 @@ router.get('/getCharge', auth(["boutique"]),async (req, res) => {
   }
 });
 
-router.post("/createCharge",auth(["boutique"]), async (req, res) => {
+router.post("/createCharge",auth(["boutique", "admin"]), async (req, res) => {
   try {
     const charge = new Charge(req.body);
     await charge.save();
@@ -105,6 +105,54 @@ router.get("/getChargeByBoutiqueId/:boutiqueId", async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 });
+
+
+router.get('/isloyerpaye/:id', async (req, res) => {
+  try {
+    const { mois, annee } = req.query;
+
+    if (!mois || !annee) {
+      return res.status(400).json({ message: 'Mois et année requis' });
+    }
+
+    const loyer = await Charge.findOne({
+      boutique: req.params.id,
+      reference: 'RENT001',
+      statut: 'paye',
+      date_limite: {
+        $gte: new Date(annee, mois - 1, 1),
+        $lte: new Date(annee, mois, 0, 23, 59, 59)
+      }
+    }).populate('boutique');
+
+    const events = [];
+
+    if (loyer) {
+      const date = new Date(loyer.date_limite);
+      events.push({
+        title: 'Rent OK',      
+        start: date.toISOString().split('T')[0],
+        allDay: true,
+        color: '#16a34a'
+      });
+    } else {
+      const today = new Date();
+      events.push({
+        title: 'Pay Rent!!!',
+        start: today.toISOString().split('T')[0],
+        allDay: true,
+        color: '#f97316' 
+      });
+    }
+
+    res.json(events);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: err.message });
+  }
+});
+
 
 
 module.exports = router;
