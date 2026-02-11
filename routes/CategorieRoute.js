@@ -4,7 +4,7 @@ const Categorie = require('../models/Categorie');
 const auth = require('../middlewares/Auth');
 
 // Lire toutes les catégories
-router.get('/getCategorie', auth(["admin", "boutique"]),async (req, res) => {
+router.get('/getCategorie',async (req, res) => {
   try {
     const categories = await Categorie.find();
     res.json(categories);
