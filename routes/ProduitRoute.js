@@ -5,6 +5,8 @@ const Boutique = require("../models/Boutique");
 const Categorie = require("../models/Categorie");
 const Produit = require("../models/Produit");
 const auth = require('../middlewares/Auth');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
 
 
 // Lire tous les produits
@@ -169,5 +171,52 @@ router.put("/updatePromo/:id", auth(["boutique"]), async (req, res) => {
     res.status(500).json({ message: error.message});
   }
 });
+
+// Route pour creer la facture du sponsor 
+router.post("/makeInvoiceSponsor/:id", auth(["boutique"]), async (req, res) => {
+  try {
+    const { sponsorData } = req.body; // dateDebut et dateFin
+    const produit = await Produit.findById(req.params.id);
+    if (!produit) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    const now = new Date();
+    if (produit.sponsor?.dateFin && new Date(produit.sponsor.dateFin) >= now) {
+      return res.status(400).json({ message: "already sponsorized" });
+    }
+
+    const debut = new Date(sponsorData.dateDebut);
+    const fin = new Date(sponsorData.dateFin);
+    const duree = Math.ceil((fin.getTime() - debut.getTime()) / (1000 * 60 * 60 * 24));
+    const amount = duree * 0.01 * produit.prix;
+
+    const invoice = {
+      produitId: produit._id,
+      produitNom: produit.nom,
+      produitPrix: produit.prix,
+      dateDebut: debut,
+      dateFin: fin,
+      duree,
+      amount,
+      currency: "eur"
+    };
+
+     const paymentIntent = await stripe.paymentIntents.create({
+      amount:Math.round(invoice.amount * 100),
+      currency: "eur",
+      description: `sponsor ${produit.nom} `,
+    });
+
+
+     res.status(200).json({
+      invoice,
+      clientSecret: paymentIntent.client_secret,
+    });;
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 
 module.exports = router;
