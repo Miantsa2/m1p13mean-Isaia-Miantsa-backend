@@ -7,6 +7,8 @@ const User = require("../models/User");
 const Produit = require("../models/Produit");
 const Centre = require("../models/Centre");
 const Charge = require("../models/Charge");
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
 
 // Lire toutes les boutiques
 router.get("/getBoutiques", async (req, res) => {
@@ -237,7 +239,17 @@ router.get("/loyer/:id", async (req, res) => {
     if (!centre) return res.status(404).json({ message: "Centre not found" });
 
     const loyer = boutique.salle.tailleMetreCarre * centre.prixMetreCarre;
-    res.json({ loyer });
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: Math.round(loyer * 100), // sécurité pour éviter les décimales
+      currency: "eur",
+      description: `Loyer pour la boutique ${boutique.nom}`,
+    });
+
+    res.status(200).json({
+      loyer,
+      clientSecret: paymentIntent.client_secret,
+      publishable_key: process.env.STRIPE_PUBLIC_KEY
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: err.message });

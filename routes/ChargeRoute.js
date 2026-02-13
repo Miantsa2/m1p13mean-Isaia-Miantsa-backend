@@ -133,7 +133,8 @@ router.get('/isloyerpaye/:id', async (req, res) => {
         title: 'Rent OK',      
         start: date.toISOString().split('T')[0],
         allDay: true,
-        color: '#16a34a'
+        color: '#16a34a',
+        statut: 'paye'
       });
     } else {
       const today = new Date();
@@ -141,7 +142,8 @@ router.get('/isloyerpaye/:id', async (req, res) => {
         title: 'Pay Rent!!!',
         start: today.toISOString().split('T')[0],
         allDay: true,
-        color: '#f97316' 
+        color: '#f97316' ,
+        statut: 'non_paye'
       });
     }
 
@@ -152,6 +154,69 @@ router.get('/isloyerpaye/:id', async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 });
+
+
+
+
+//calcule loyer
+router.get("/loyer/:id", async (req, res) => {
+  try {
+    const boutique = await boutique.findById(req.params.id).populate("salle");
+    if (!boutique) return res.status(404).json({ message: "Boutique not found" });
+
+    const centre = await centre.findOne({ salles: boutique.salle._id });
+    if (!centre) return res.status(404).json({ message: "Centre not found" });
+
+    const loyer = boutique.salle.tailleMetreCarre * centre.prixMetreCarre;
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount:loyer * 100,
+      currency: "eur",
+      description: `Loyer pour la boutique ${boutique.nom}`,
+    });
+
+    res.status(200).json({
+      loyer,
+      clientSecret: paymentIntent.client_secret,
+      publishable_key: process.env.STRIPE_PUBLIC_KEY
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: err.message });
+  }
+});
+
+
+
+router.get('/getChargeLoyer/:id', async (req, res) => {
+  try {
+    const { mois, annee } = req.query;
+
+    if (!mois || !annee) {
+      return res.status(400).json({ message: 'Mois et année requis' });
+    }
+
+    const loyer = await Charge.findOne({
+      boutique: req.params.id,
+      reference: 'RENT001',
+      statut: 'non_paye',
+      date_limite: {
+        $gte: new Date(annee, mois - 1, 1),
+        $lte: new Date(annee, mois, 0, 23, 59, 59)
+      }
+    }).populate('boutique');
+
+    res.json(loyer);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: err.message });
+  }
+});
+
+
+
+
+
 
 
 
