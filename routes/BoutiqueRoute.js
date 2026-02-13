@@ -26,10 +26,10 @@ router.get("/getBoutiques", async (req, res) => {
 });
 
 // Lire une boutique spécifique par son ID
-router.get("/getBoutique/:id", auth(["admin", "boutique"]), async (req, res) => {
+router.get("/getBoutique/:id", async (req, res) => {
   try {
     const boutique = await Boutique.findById(req.params.id)
-      .populate("user")
+      .populate("user", "email")
       .populate("categorie")
       .populate("salle");
 

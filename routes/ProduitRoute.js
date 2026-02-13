@@ -8,7 +8,7 @@ const auth = require('../middlewares/Auth');
 
 
 // Lire tous les produits
-router.get("/getProduits", auth(["admin", "boutique"]), async (req, res) => {
+router.get("/getProduits", auth(["admin", "boutique", "client"]), async (req, res) => {
   try {
     const produits = await Produit.find()
       .populate("boutique")
@@ -21,7 +21,7 @@ router.get("/getProduits", auth(["admin", "boutique"]), async (req, res) => {
 });
 
 // Lire un produit par ID
-router.get("/getProduit/:id", auth(["admin", "boutique"]), async (req, res) => {
+router.get("/getProduit/:id", auth(["admin", "boutique", "client"]), async (req, res) => {
   try {
     const produit = await Produit.findById(req.params.id)
       .populate("boutique")
@@ -38,7 +38,7 @@ router.get("/getProduit/:id", auth(["admin", "boutique"]), async (req, res) => {
 });
 
 // Lire les produits d'une boutique
-router.get("/getProduitsByBoutique/:boutiqueId", auth(["admin", "boutique"]), async (req, res) => {
+router.get("/getProduitsByBoutique/:boutiqueId", auth(["admin", "boutique", "client"]), async (req, res) => {
   try {
     const produits = await Produit.find({ boutique: req.params.boutiqueId })
       .populate("boutique")
@@ -51,7 +51,7 @@ router.get("/getProduitsByBoutique/:boutiqueId", auth(["admin", "boutique"]), as
 });
 
 // Lire les catégories utilisées par une boutique ( pour filtre )
-router.get("/getCategoriesByBoutique/:boutiqueId", auth(["admin", "boutique"]), async (req, res) => {
+router.get("/getCategoriesByBoutique/:boutiqueId", auth(["admin", "boutique", "client"]), async (req, res) => {
   try {
     const categories = await Produit.aggregate([
       {

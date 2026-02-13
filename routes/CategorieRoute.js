@@ -25,7 +25,7 @@ router.post("/createCategorie",auth(["admin", "boutique"]), async (req, res) => 
 });
 
 // get un categorie par id
-router.get("/getCategorieId/:id",auth(["admin", "boutique"]), async (req, res) => {
+router.get("/getCategorieId/:id",auth(["admin", "boutique", "client"]), async (req, res) => {
   try {
     const categorie = await Categorie.findById(req.params.id);
     if (!categorie) {
