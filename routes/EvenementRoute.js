@@ -91,7 +91,8 @@ router.get("/getEventByStatut/:statut", async (req, res) => {
   try {
     const events = await Evenement.find({
       statut: req.params.statut
-    }).populate("boutique");
+    }).populate("boutique")
+    .sort({ boutique: 1 });;
 
     res.status(200).json(events);
   } catch (err) {
@@ -240,6 +241,27 @@ router.get("/FilterEventStore", async (req, res) => {
         });
     }
 });
+
+router.get("/getEventByBoutiqueIdandStatut/:boutiqueId", async (req, res) => {
+  try {
+    const { boutiqueId } = req.params;
+    const { statut } = req.query;
+
+    const filter = { boutique: boutiqueId };
+
+    if (statut) {
+      filter.statut = statut;
+    }
+
+    const events = await Evenement.find(filter).populate("boutique");
+
+    res.status(200).json(events);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+
 
 
 module.exports = router;
