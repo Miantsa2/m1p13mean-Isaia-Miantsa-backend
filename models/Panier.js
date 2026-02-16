@@ -14,15 +14,18 @@ const PanierSchema = new mongoose.Schema({
     produits: [
     {
         id:{ type:mongoose.Schema.Types.ObjectId, ref:"Produit" },
-        quantite: Number, sous_total: Number
+        quantite: Number, sous_total: Number,
+        date_recuperation: Date,
+
     }
     ],
-    recuperation: {
-        date_recuperation: Date,
-        coo_x: String,
-        coo_y: String
+   recuperation: {
+        coo_x: Number,
+        coo_y: Number
     }
   
 }, { timestamps: true });
 
 module.exports = mongoose.model("Panier", PanierSchema);
+
+
