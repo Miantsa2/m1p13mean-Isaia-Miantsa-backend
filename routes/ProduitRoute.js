@@ -42,7 +42,7 @@ router.get("/getProduit/:id", auth(["admin", "boutique", "client"]), async (req,
 // Lire les produits d'une boutique
 router.get("/getProduitsByBoutique/:boutiqueId", auth(["admin", "boutique", "client"]), async (req, res) => {
   try {
-    const produits = await Produit.find({ boutique: req.params.boutiqueId })
+    const produits = await Produit.find({ boutique: req.params.boutiqueId, isAvailable: true })
       .populate("boutique")
       .populate("categorie");
 
