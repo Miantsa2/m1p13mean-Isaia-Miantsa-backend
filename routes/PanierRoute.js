@@ -66,8 +66,12 @@ router.get("/client/:clientId", async (req, res) => {
         const panier = await Panier.findOne({ 
             client: req.params.clientId, 
             statut: "en_cours" 
-        }).populate("produits.id");
-
+        }).populate({
+          path: "produits.id",
+          populate: {
+            path: "boutique"
+          }
+        });
         if (!panier) {
             return res.status(200).json({ produits: [], total: 0 });
         }
