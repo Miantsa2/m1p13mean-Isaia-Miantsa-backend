@@ -8,11 +8,9 @@ router.get("/ventes-annuelles/:boutiqueId", async (req, res) => {
         const { boutiqueId } = req.params;
         const year = parseInt(req.query.year) || new Date().getFullYear();
 
-        // Définir le début et la fin de l'année choisie
         const debutAnnee = new Date(year, 0, 1);
         const finAnnee = new Date(year, 11, 31, 23, 59, 59);
 
-        // On filtre directement dans la base de données par date
         const paniers = await Panier.find({ 
             statut: "valide",
             createdAt: { $gte: debutAnnee, $lte: finAnnee } 
@@ -50,7 +48,6 @@ router.get("/top-produits/:boutiqueId", async (req, res) => {
         const { mois, year } = req.query;
         const targetYear = parseInt(year) || new Date().getFullYear();
 
-        // Filtre de base : l'année choisie
         const query = {
             statut: "valide",
             createdAt: { 
@@ -64,7 +61,6 @@ router.get("/top-produits/:boutiqueId", async (req, res) => {
 
         paniers.forEach(panier => {
             const datePanier = new Date(panier.createdAt);
-            // On vérifie si le mois correspond (si un mois est fourni)
             const matchMois = mois ? (datePanier.getMonth() + 1) === parseInt(mois) : true;
 
             if (matchMois) {
