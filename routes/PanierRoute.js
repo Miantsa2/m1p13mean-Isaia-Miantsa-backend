@@ -293,7 +293,7 @@ router.get("/makeInvoice/cart/:id", async (req, res) => {
   }
 });
 
-// Pour avoir les produits par catégorie selon les paniers validés pour chaque boutique
+// Pour avoir les produits selon les paniers validés pour chaque boutique
 router.get("/boutique/:boutiqueId", async (req, res) => {
     try {
         const { boutiqueId } = req.params;
