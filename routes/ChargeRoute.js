@@ -4,7 +4,7 @@ const Charge = require("../models/Charge");
 const auth= require('../middlewares/Auth');
 
 // Lire tous charges
-router.get('/getCharge', auth(["boutique"]),async (req, res) => {
+router.get('/getCharge', auth(["boutique","admin"]),async (req, res) => {
   try {
     const charges = await Charge.find().populate("boutique");
     res.json(charges);
