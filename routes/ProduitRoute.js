@@ -219,4 +219,24 @@ router.post("/makeInvoiceSponsor/:id", auth(["boutique"]), async (req, res) => {
 });
 
 
+router.get("/getSponsorisedProduit", auth(["admin", "boutique", "client"]), async (req, res) => {
+  try {
+    const now = new Date();
+
+    const produits = await Produit.find({
+      isAvailable: true,
+      "sponsor.dateDebut": { $lte: now },
+      "sponsor.dateFin": { $gte: now }
+    })
+      .populate("boutique")
+      .populate("categorie");
+
+    res.json(produits);
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+
 module.exports = router;
