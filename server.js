@@ -50,6 +50,8 @@ app.use('/mean/stock', require('./routes/StockRoute'));
 app.use('/mean/charge', require('./routes/ChargeRoute'));
 app.use('/mean/cart', require('./routes/PanierRoute'));
 app.use('/mean/dash_boutique', require('./routes/DashboardBoutiqueRoute'));
+app.use('/mean/dashboardAdmin', require('./routes/SiteStatRoute'));
+
 
 
 
