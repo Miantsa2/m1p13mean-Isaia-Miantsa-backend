@@ -47,7 +47,7 @@ router.put("/update-quantity", async (req, res) => {
 
 // 3. Supprimer un produit
 router.delete("/remove-product/:clientId/:produitId", async (req, res) => {
-    const panier = await Panier.findOne({ client: req.params.clientId, statut: "en_cours" });
+    const panier = await Panier.findOne({ client: req.params.clientId, statut: "valide" });
     panier.produits = panier.produits.filter(p => p.id.toString() !== req.params.produitId);
     panier.total = panier.produits.reduce((acc, p) => acc + p.sous_total, 0);
     await panier.save();
@@ -60,25 +60,43 @@ router.delete("/clear/:clientId", async (req, res) => {
     res.status(200).json({ message: "Deleted cart" });
 });
 
-// 5. Récupérer le panier d'un client
+// 5. Récupérer les paniers validés d'un client
 router.get("/client/:clientId", async (req, res) => {
-    try {
-        const panier = await Panier.findOne({ 
-            client: req.params.clientId, 
-            statut: "en_cours" 
-        }).populate({
-          path: "produits.id",
-          populate: {
-            path: "boutique"
+  try {
+    const { clientId } = req.params;
+    const paniers = await Panier.find({ client: clientId, statut: "valide" })
+        .populate({
+            path: "produits.id",
+            populate: { path: "boutique" }
+        })
+        .sort({ createdAt: -1 });
+
+    let history = [];
+    paniers.forEach((panier, index) => {
+      panier.produits.forEach(item => {
+          // AJOUT DE CETTE SÉCURITÉ : on vérifie que item.id n'est pas null
+          if (item.id && item.id.boutique) {
+              history.push({
+                  cartDisplayIndex: paniers.length - index,
+                  panierId: panier._id,
+                  storeName: item.id.boutique.nom,
+                  productName: item.id.nom,
+                  productImg: item.id.description,
+                  price: item.id.prix,
+                  quantity: item.quantite,
+                  subtotal: item.sous_total,
+                  deliveryTime: item.date_recuperation,
+                  createdAt: panier.createdAt
+              });
+          } else {
+              console.warn(`Produit manquant ou boutique introuvable dans le panier ${panier._id}`);
           }
         });
-        if (!panier) {
-            return res.status(200).json({ produits: [], total: 0 });
-        }
-        res.status(200).json(panier);
-    } catch (err) {
-        res.status(500).json(err);
-    }
+    });
+    res.json(history);
+  } catch (error) {
+      res.status(500).json({ message: error.message });
+  }
 });
 
 // 6. Validation d'un panier
@@ -216,7 +234,6 @@ function calculateDeliveryPrice(lat2, lon2){
 }
 
 
-
 router.get("/makeInvoice/cart/:id", async (req, res) => {
   try {
     const panier = await Panier.findById(req.params.id)
@@ -276,7 +293,82 @@ router.get("/makeInvoice/cart/:id", async (req, res) => {
   }
 });
 
+// Pour avoir les produits par catégorie selon les paniers validés pour chaque boutique
+router.get("/boutique/:boutiqueId", async (req, res) => {
+    try {
+        const { boutiqueId } = req.params;
 
+        const paniers = await Panier.find({ statut: "valide" })
+            .populate("client")
+            .populate({
+                path: "produits.id",
+                populate: { path: "boutique" }
+            });
 
+        let ventesBoutique = [];
+
+        paniers.forEach(panier => {
+            const items = panier.produits.filter(p => 
+                p.id && p.id.boutique && p.id.boutique._id.toString() === boutiqueId
+            );
+
+            items.forEach(item => {
+                ventesBoutique.push({
+                    panierId: panier._id, 
+                    produitId: item.id._id,
+                    clientNom: panier.client ? panier.client.nom : "Client Inconnu",
+                    nomProduit: item.id.nom,
+                    quantite: item.quantite,
+                    totalOrder: item.sous_total,
+                    orderDate: panier.createdAt,
+                    date_recuperation: item.date_recuperation,
+                    coo_x: panier.recuperation ? panier.recuperation.coo_x : 0,
+                    coo_y: panier.recuperation ? panier.recuperation.coo_y : 0,
+                    status: item.date_recuperation ? 'To be checked' : 'To deliver'
+                });
+            });
+        });
+
+        res.json(ventesBoutique);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// update du delivery
+router.put("/update-delivery/:panierId/:produitId", async (req, res) => {
+  try {
+    const { panierId, produitId } = req.params;
+    const { date_recuperation } = req.body;
+
+    const panier = await Panier.findOneAndUpdate(
+      { _id: panierId, "produits.id": produitId },
+      { 
+        $set: { "produits.$.date_recuperation": date_recuperation } 
+      },
+      { new: true }
+    );
+
+    res.json({ message: "Delivery time updated", panier });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Supprimer un panier spécifique par son ID
+router.delete("/delete-cart/:id", async (req, res) => {
+    try {
+        const result = await Panier.findByIdAndDelete(req.params.id);
+        
+        if (!result) {
+            return res.status(404).json({ message: "Panier introuvable" });
+        }
+
+        res.status(200).json({ message: "Panier supprimé avec succès" });
+    } catch (err) {
+        console.error("Erreur lors de la suppression du panier:", err);
+        res.status(500).json({ message: "Erreur serveur", error: err.message });
+    }
+});
 
 module.exports = router;
