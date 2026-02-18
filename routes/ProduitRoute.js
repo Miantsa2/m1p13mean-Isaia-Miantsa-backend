@@ -2,12 +2,11 @@ const express = require("express");
 const mongoose = require("mongoose");
 const router = express.Router();
 const Boutique = require("../models/Boutique");
-const Categorie = require("../models/Categorie");
 const Produit = require("../models/Produit");
 const auth = require('../middlewares/Auth');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-
-
+const multer = require('multer');
+const path = require('path');
 
 // Lire tous les produits
 router.get("/getProduits", auth(["admin", "boutique", "client"]), async (req, res) => {
@@ -40,7 +39,7 @@ router.get("/getProduit/:id", auth(["admin", "boutique", "client"]), async (req,
 });
 
 // Lire les produits d'une boutique
-router.get("/getProduitsByBoutique/:boutiqueId", auth(["admin", "boutique", "client"]), async (req, res) => {
+router.get("/getProduitsByBoutique/:boutiqueId", async (req, res) => {
   try {
     const produits = await Produit.find({ boutique: req.params.boutiqueId, isAvailable: true })
       .populate("boutique")
@@ -88,18 +87,31 @@ router.get("/getCategoriesByBoutique/:boutiqueId", auth(["admin", "boutique", "c
   }
 });
 
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/'); 
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname));
+  }
+});
+const upload = multer({ storage: storage });
+
 // Création d'un produit
-router.post("/createProduit", auth(["boutique"]), async (req, res) => {
+router.post("/createProduit", auth(["boutique"]),upload.single('image'), async (req, res) => {
   try {
-    // Vérifier que la boutique existe
     const boutique = await Boutique.findById(req.body.boutique);
     if (!boutique) {
       return res.status(404).json({ message: "Boutique not found" });
     }
 
-    const produit = new Produit(req.body);
-    await produit.save();
+    const produitData = {
+      ...req.body,
+      description: req.file ? `/uploads/${req.file.filename}` : req.body.description
+    };
 
+    const produit = new Produit(produitData);
+    await produit.save();
     res.status(201).json(produit);
   } catch (error) {
     res.status(400).json({ message: error.message });

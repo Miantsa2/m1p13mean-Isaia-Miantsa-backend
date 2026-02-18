@@ -8,7 +8,7 @@ const Produit = require("../models/Produit");
 const Centre = require("../models/Centre");
 const Charge = require("../models/Charge");
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-
+const upload = require('../middlewares/multer-config');
 
 // Lire toutes les boutiques
 router.get("/getBoutiques", async (req, res) => {
@@ -85,21 +85,34 @@ router.post("/createBoutique", auth(["admin"]), async (req, res) => {
 
 
 // Modifier une boutique
-router.put("/updateBoutique/:id", auth(["admin", "boutique"]), async (req, res) => {
+router.put("/updateBoutique/:id", auth(["admin", "boutique"]), upload.single('logo'), async (req, res) => {
   try {
+    console.log("FILES:", req.file);
+    console.log("BODY:", req.body);
+
     const boutique = await Boutique.findById(req.params.id);
     if (!boutique) return res.status(404).json({ message: "Boutique not found" });
 
-    // voir si c'est le boutique en question
     if (req.user.role === "boutique" && boutique.user.toString() !== req.user.id) {
       return res.status(403).json({ message: "Vous n'êtes pas autorisé à modifier cette boutique" });
     }
 
-    const { nom, telephone, horaires, salle } = req.body;
+    const { nom, telephone, salle } = req.body;
     
     if (nom) boutique.nom = nom;
     if (telephone) boutique.telephone = telephone;
-    if (horaires) boutique.horaires = horaires;
+    if (req.body.horaires) {
+      try {
+        boutique.horaires = typeof req.body.horaires === 'string' 
+          ? JSON.parse(req.body.horaires) 
+          : req.body.horaires;
+      } catch (e) {
+        return res.status(400).json({ message: "Format horaires invalide" });
+      }
+    }
+    if (req.file) {
+      boutique.logo = `/uploads/${req.file.filename}`;
+    }
 
     // Seul l'admin peut changer la salle
     if (req.user.role === "admin" && salle && salle !== boutique.salle?.toString()) {
