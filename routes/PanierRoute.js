@@ -132,15 +132,18 @@ router.post("/validate", async (req, res) => {
     }
 });
 
-// 7. Pour voir les historiques de tous les paniers par client
-router.get("/history/:clientId", async (req, res) => {
+// 7. Pour récupérer le panier en cours
+router.get("/my-cart/:clientId", async (req, res) => {
     try {
-        const historique = await Panier.find({ 
+        const panier = await Panier.findOne({ 
             client: req.params.clientId, 
-            statut: "valide" 
+            statut: "en_cours" 
         }).populate("produits.id");
-        
-        res.status(200).json(historique);
+
+        if (!panier) {
+            return res.status(200).json({ produits: [], total: 0 });
+        }
+        res.status(200).json(panier);
     } catch (err) {
         res.status(500).json(err);
     }
