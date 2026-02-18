@@ -9,6 +9,8 @@ const Charge= require('../models/Charge');
 
 
 function getDateRange(month, year) {
+  if (month === "all" || month === "") month = undefined;
+  if (year === "all" || year === "") year = undefined;
   const currentYear = new Date().getFullYear();
   const selectedYear = year ? Number(year) : currentYear;
 
@@ -195,7 +197,7 @@ router.get('/centre/chiffre-affaire/evolution/mensuel', auth(["admin"]), async (
     // Transformer pour Angular : ["Jan", "Feb", ...]
     const data = result.map(item => {
       const date = new Date(selectedYear, item._id.month - 1);
-      const month = date.toLocaleString('default', { month: 'short', year: 'numeric' });
+      const month = date.toLocaleString('en-US', { month: 'short', year: 'numeric' });
       return { month, total: item.total };
     });
 
@@ -206,5 +208,67 @@ router.get('/centre/chiffre-affaire/evolution/mensuel', auth(["admin"]), async (
     res.status(500).json({ message: "Erreur serveur" });
   }
 });
+
+
+router.get('/rooms/repartition', auth(["admin"]), async (req, res) => {
+  try {
+    const { month, year } = req.query;
+
+    let query = {};
+    const range = getDateRange(month, year);
+    if (range) query.createdAt = { $gte: range.startDate, $lte: range.endDate };
+
+    const libres = await Salle.countDocuments({ ...query, statut: "libre" });
+    const occupes = await Salle.countDocuments({ ...query, statut: "occupee" });
+
+    res.json({
+      libres,
+      occupes
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Erreur serveur" });
+  }
+});
+
+
+router.get('/products/performance', auth(["admin"]), async (req, res) => {
+  try {
+    const { month, year } = req.query;
+
+    let match = {};
+    const range = getDateRange(month, year);
+    if (range) match.createdAt = { $gte: range.startDate, $lte: range.endDate };
+
+    const result = await Produit.aggregate([
+      { $match: match },
+      {
+        $lookup: {
+          from: "boutiques",        
+          localField: "boutique",
+          foreignField: "_id",
+          as: "boutique_info"
+        }
+      },
+      { $unwind: "$boutique_info" }, 
+      {
+        $group: {
+          _id: "$boutique_info.nom", 
+          total: { $sum: 1 }
+        }
+      },
+      { $sort: { total: -1 } },
+      { $limit: 10 }
+    ]);
+
+    res.json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Erreur serveur" });
+  }
+});
+
+
 
 module.exports = router;
