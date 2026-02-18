@@ -86,7 +86,7 @@ router.get("/client/:clientId", async (req, res) => {
                   quantity: item.quantite,
                   subtotal: item.sous_total,
                   deliveryTime: item.date_recuperation,
-                  createdAt: panier.createdAt
+                  createdAt: panier.createdAt,
               });
           } else {
               console.warn(`Produit manquant ou boutique introuvable dans le panier ${panier._id}`);
@@ -373,5 +373,22 @@ router.delete("/delete-cart/:id", async (req, res) => {
         res.status(500).json({ message: "Erreur serveur", error: err.message });
     }
 });
+
+router.get("/panier/:clientId", async (req, res) => {
+  try {
+    const { clientId } = req.params;
+    const paniers = await Panier.find({ client: clientId, statut: "valide" })
+        .populate({
+            path: "produits.id",
+            populate: { path: "boutique" }
+        })
+        .sort({ createdAt: -1 });
+
+    res.json(paniers);
+  } catch (error) {
+      res.status(500).json({ message: error.message });
+  }
+});
+
 
 module.exports = router;
