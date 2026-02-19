@@ -242,16 +242,41 @@ router.put('/readNotif/:id/notifications/lue', async (req, res) => {
 });
 
 
+router.get("/loyer/adminPay/:id", async (req, res) => {
+  try {
+    const boutique = await Boutique.findById(req.params.id).populate("salle");
+    if (!boutique) return res.status(404).json({ message: "Boutique not found" });
+
+    const centre = await Centre.findOne();
+    if (!centre) return res.status(404).json({ message: "Centre not found" });
+
+    const loyer = boutique.salle.tailleMetreCarre * centre.prixMetreCarre; 
+    res.status(200).json({
+      loyer
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: err.message });
+  }
+});
+
+
 //calcule loyer
 router.get("/loyer/:id", async (req, res) => {
   try {
     const boutique = await Boutique.findById(req.params.id).populate("salle");
     if (!boutique) return res.status(404).json({ message: "Boutique not found" });
 
-    const centre = await Centre.findOne({ salles: boutique.salle._id });
+    const centre = await Centre.findOne();
     if (!centre) return res.status(404).json({ message: "Centre not found" });
 
     const loyer = boutique.salle.tailleMetreCarre * centre.prixMetreCarre;
+    if (loyer > 999999.99) {
+      return res.status(400).json({
+        message: "The amount is too high, please pay it to the Admin"
+      });
+    }
+
     const paymentIntent = await stripe.paymentIntents.create({
       amount: Math.round(loyer * 100), // sécurité pour éviter les décimales
       currency: "eur",
