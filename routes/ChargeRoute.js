@@ -126,6 +126,7 @@ router.get('/isloyerpaye/:id', async (req, res) => {
     }).populate('boutique');
 
     const events = [];
+    const firstDay = new Date(annee, mois - 1, 2);
 
     if (loyer) {
       const date = new Date(loyer.date_limite);
@@ -137,10 +138,9 @@ router.get('/isloyerpaye/:id', async (req, res) => {
         statut: 'paye'
       });
     } else {
-      const today = new Date();
       events.push({
         title: 'Pay Rent!!!',
-        start: today.toISOString().split('T')[0],
+        start: firstDay.toISOString().split('T')[0],
         allDay: true,
         color: '#f97316' ,
         statut: 'non_paye'
