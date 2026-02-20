@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const router = express.Router();
 const Boutique = require("../models/Boutique");
 const Produit = require("../models/Produit");
+const Stock = require("../models/Stock");
 const auth = require('../middlewares/Auth');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const multer = require('multer');
@@ -43,9 +44,24 @@ router.get("/getProduitsByBoutique/:boutiqueId", async (req, res) => {
   try {
     const produits = await Produit.find({ boutique: req.params.boutiqueId, isAvailable: true })
       .populate("boutique")
-      .populate("categorie");
+      .populate("categorie")
+      .lean();
 
-    res.json(produits);
+    const produitsAvecStock = await Promise.all(produits.map(async (p) => {
+      if (p.stock === null || p.stock === undefined) {
+          return { ...p, availableQty: null }; 
+      }
+
+      const mouvements = await Stock.find({ produit: p._id });
+      const totalIn = mouvements.filter(m => m.est_entree === 1).reduce((acc, curr) => acc + curr.quantite, 0);
+      const totalOut = mouvements.filter(m => m.est_entree === 0).reduce((acc, curr) => acc + curr.quantite, 0);
+
+      const currentQty = (Number(p.stock) || 0) + totalIn - totalOut;
+
+      return { ...p, availableQty: currentQty };
+    }));
+
+    res.json(produitsAvecStock);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

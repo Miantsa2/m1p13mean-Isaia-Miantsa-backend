@@ -16,7 +16,7 @@ const PanierSchema = new mongoose.Schema({
         id:{ type:mongoose.Schema.Types.ObjectId, ref:"Produit" },
         quantite: Number, sous_total: Number,
         date_recuperation: Date,
-
+        checked: { type: Boolean, default: false }
     }
     ],
    recuperation: {
