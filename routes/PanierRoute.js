@@ -47,11 +47,27 @@ router.put("/update-quantity", async (req, res) => {
 
 // 3. Supprimer un produit
 router.delete("/remove-product/:clientId/:produitId", async (req, res) => {
-    const panier = await Panier.findOne({ client: req.params.clientId, statut: "valide" });
-    panier.produits = panier.produits.filter(p => p.id.toString() !== req.params.produitId);
-    panier.total = panier.produits.reduce((acc, p) => acc + p.sous_total, 0);
-    await panier.save();
-    res.status(200).json(panier);
+    try {
+        const { clientId, produitId } = req.params;
+
+        const panier = await Panier.findOneAndUpdate(
+            { client: clientId, statut: "en_cours" },
+            { $pull: { produits: { id: produitId } } },
+            { new: true }
+        );
+
+        if (!panier) {
+            return res.status(404).json({ message: "No active cart found" });
+        }
+
+        panier.total = panier.produits.reduce((acc, p) => acc + (p.sous_total || 0), 0);
+        await panier.save();
+
+        const updatedPanier = await Panier.findById(panier._id).populate("produits.id");
+        res.status(200).json(updatedPanier);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
 });
 
 // 4. Vide le panier
@@ -327,7 +343,7 @@ router.get("/boutique/:boutiqueId", async (req, res) => {
                     date_recuperation: item.date_recuperation,
                     coo_x: panier.recuperation ? panier.recuperation.coo_x : 0,
                     coo_y: panier.recuperation ? panier.recuperation.coo_y : 0,
-                    status: item.date_recuperation ? 'To be checked' : 'To deliver'
+                    status: item.checked ? 'checked' : (item.date_recuperation ? 'To be checked' : 'To deliver')
                 });
             });
         });
@@ -371,6 +387,25 @@ router.delete("/delete-cart/:id", async (req, res) => {
     } catch (err) {
         console.error("Erreur lors de la suppression du panier:", err);
         res.status(500).json({ message: "Erreur serveur", error: err.message });
+    }
+});
+
+// click sur Check now
+router.patch("/check-item/:panierId/:produitId", async (req, res) => {
+    try {
+        const { panierId, produitId } = req.params;
+        
+        const panier = await Panier.findOneAndUpdate(
+            { _id: panierId, "produits.id": produitId },
+            { $set: { "produits.$.checked": true } },
+            { new: true }
+        );
+
+        if (!panier) return res.status(404).json({ message: "Item non trouvé" });
+        
+        res.json({ message: "Status updated to checked" });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
     }
 });
 
