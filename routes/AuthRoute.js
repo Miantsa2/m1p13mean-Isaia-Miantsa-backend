@@ -4,6 +4,8 @@ const UserController = require("../controllers/UserController");
 const client = require("../models/Client");
 const passport = require("passport");
 const createToken = require("../utils/CreateToken");
+require('dotenv').config();
+
 
 
 // Inscription client
@@ -25,7 +27,7 @@ router.get('/google/callback',
     const token = createToken(req.user);
     
     // res.redirect(`http://localhost:4200/login`);
-    res.redirect(`https://m1p13mean-isaia-miantsa.netlify.app/auth/callback?token=${token}&role=${req.user.role}`
+    res.redirect(`process.env.REDIRECT_URI/auth/callback?token=${token}&role=${req.user.role}`
 );
 
 
