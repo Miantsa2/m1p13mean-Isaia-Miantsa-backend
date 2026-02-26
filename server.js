@@ -15,7 +15,7 @@ const PORT = process.env.PORT || 5000;
 // Middleware
 const allowedOrigins = [
   'http://localhost:4200',
-  'https://m1p13mean-isaia-miantsa.netlify.app'
+  'https://m1p13mean-miantsa-isaia.netlify.app'
 ];
 
 app.use(cors({
