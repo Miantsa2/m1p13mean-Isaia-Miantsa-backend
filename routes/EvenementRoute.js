@@ -4,37 +4,77 @@ const Evenement = require("../models/Evenement");
 const { sendEventAcceptedMail } = require("../controllers/MailController");
 const User = require("../models/User");
 
+// router.put("/acceptEvent/:id", async (req, res) => {
+//   try {
+//     const event = await Evenement.findById(req.params.id)
+//       .populate({
+//         path: "boutique",           
+//         populate: { path: "user" }  
+//       });
+//       console.log(event);
+
+//     event.statut = "approuved";
+
+//     if (!event.email_envoye ) {
+//       console.log(`Envoi de l'email pour l'événement ${event.boutique.user.email}`);
+//       sendEventAcceptedMail(event.boutique, event);
+//       event.email_envoye = true;
+//       await event.save();
+//     }
+
+//     res.status(200).json({
+//       message: "Événement accepté et email envoyé",
+//       event
+//     });
+
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({
+//       message: "Erreur lors de l'acceptation de l'événement",
+//       error: err.message
+//     });
+//   }
+// });
+
 router.put("/acceptEvent/:id", async (req, res) => {
   try {
     const event = await Evenement.findById(req.params.id)
       .populate({
-        path: "boutique",           
-        populate: { path: "user" }  
+        path: "boutique",
+        populate: { path: "user" }
       });
 
-    event.statut = "approuved";
-
-    if (!event.email_envoye ) {
-        console.log(`Envoi de l'email pour l'événement ${event.boutique.user.email}`);
-      await sendEventAcceptedMail(event.boutique, event);
-      event.email_envoye = true;
-      await event.save();
+    if (!event) {
+      return res.status(404).json({ message: "Event introuvable" });
     }
 
+    event.statut = "approved"; 
+    await event.save();
+
     res.status(200).json({
-      message: "Événement accepté et email envoyé",
+      message: "Événement accepté",
       event
     });
+
+    if (!event.email_envoye) {
+      sendEventAcceptedMail(event.boutique, event)
+        .then(async () => {
+          event.email_envoye = true;
+          await event.save();
+        })
+        .catch(err => {
+          console.error("Erreur envoi mail:", err);
+        });
+    }
 
   } catch (err) {
     console.error(err);
     res.status(500).json({
-      message: "Erreur lors de l'acceptation de l'événement",
+      message: "Erreur",
       error: err.message
     });
   }
 });
-
 
 router.post("/createEvent", async (req, res) => {
     try {
