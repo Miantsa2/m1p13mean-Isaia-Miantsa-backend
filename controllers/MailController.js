@@ -11,7 +11,7 @@ const transporter = nodemailer.createTransport({
 exports.sendEventAcceptedMail = async (boutique, event) => {
   return transporter.sendMail({
     from: `"SAMI Mall" <${process.env.MAIL_USER}>`,
-    // to: <${event.boutique.user.email},
+    //to: `${event.boutique.user.email}`,
     to: "ranaivofitia970@gmail.com",
 
     subject: "Your Event Request Has Been Approved ",
