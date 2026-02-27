@@ -10,8 +10,8 @@ const transporter = nodemailer.createTransport({
 
 exports.sendEventAcceptedMail = async (boutique, event) => {
   return transporter.sendMail({
-    from: `"Olympia Mall" <${process.env.MAIL_USER}>`,
-    // to: <${event.boutique.user.email},
+    from: `"SAMI Mall" <${process.env.MAIL_USER}>`,
+    //to: `${event.boutique.user.email}`,
     to: "ranaivofitia970@gmail.com",
 
     subject: "Your Event Request Has Been Approved ",
@@ -28,7 +28,7 @@ exports.sendEventAcceptedMail = async (boutique, event) => {
         <li> Event name : ${event.reference}</li>
         <li> Start Date: ${new Date(event.dateDebut).toLocaleDateString()}</li>
         <li> End Date : ${new Date(event.dateFin).toLocaleDateString()}</li>
-        <li> Location : Olympia Mall</li>
+        <li> Location : SAMI Mall</li>
       </ul>
 
       <p>
@@ -41,7 +41,7 @@ exports.sendEventAcceptedMail = async (boutique, event) => {
 
 
       <p style="margin-top:20px;">
-        <b>Équipe Olympia Mall</b>
+        <b>Équipe SAMI Mall</b>
       </p>
     `,
   });
