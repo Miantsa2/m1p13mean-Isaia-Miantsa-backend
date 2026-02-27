@@ -48,7 +48,7 @@ router.put("/acceptEvent/:id", async (req, res) => {
       return res.status(404).json({ message: "Event introuvable" });
     }
 
-    event.statut = "approved"; 
+    event.statut = "approuved"; 
     await event.save();
 
     res.status(200).json({
