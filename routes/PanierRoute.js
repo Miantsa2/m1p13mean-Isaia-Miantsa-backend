@@ -6,17 +6,36 @@ const Produit = require("../models/Produit");
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 
-// 1. AJOUTER / UPDATE
+// 1. AJOUTER
 router.post("/add", async (req, res) => {
     try {
-        const { clientId, produitId, prix } = req.body; // Quantité 1 par défaut
-        let panier = await Panier.findOne({ client: clientId, statut: "en_cours" });
+        const { clientId, produitId, prix } = req.body;
+        
+        const p = await Produit.findById(produitId);
+        if (!p) return res.status(404).json({ message: "Product not found" });
 
+        let availableQty = 9999; 
+        if (p.stock !== null && p.stock !== undefined) {
+            const mouvements = await Stock.find({ produit: p._id });
+            const totalIn = mouvements.filter(m => m.est_entree === 1).reduce((acc, curr) => acc + curr.quantite, 0);
+            const totalOut = mouvements.filter(m => m.est_entree === 0).reduce((acc, curr) => acc + curr.quantite, 0);
+            availableQty = (Number(p.stock) || 0) + totalIn - totalOut;
+        }
+
+        let panier = await Panier.findOne({ client: clientId, statut: "en_cours" });
         if (!panier) {
             panier = new Panier({ client: clientId, produits: [], total: 0 });
         }
 
         const itemIndex = panier.produits.findIndex(p => p.id.toString() === produitId);
+        const currentQtyInCart = itemIndex > -1 ? panier.produits[itemIndex].quantite : 0;
+
+        if (currentQtyInCart + 1 > availableQty) {
+            return res.status(400).json({ 
+                message: `Insufficient stock. Max available: ${availableQty}`,
+                availableQty 
+            });
+        }
 
         if (itemIndex > -1) {
             panier.produits[itemIndex].quantite += 1;
@@ -27,8 +46,11 @@ router.post("/add", async (req, res) => {
 
         panier.total = panier.produits.reduce((acc, p) => acc + p.sous_total, 0);
         await panier.save();
+        
         res.status(200).json(panier);
-    } catch (err) { res.status(500).json(err); }
+    } catch (err) { 
+        res.status(500).json({ message: err.message }); 
+    }
 });
 
 // 2. UPDATE QUANTITÉ 
