@@ -218,6 +218,8 @@ router.post("/makeInvoiceSponsor/:id", auth(["boutique"]), async (req, res) => {
     const fin = new Date(sponsorData.dateFin);
     const duree = Math.ceil((fin.getTime() - debut.getTime()) / (1000 * 60 * 60 * 24));
     const amount = duree * 0.01 * produit.prix;
+ 
+    
 
     const invoice = {
       produitId: produit._id,
@@ -229,6 +231,8 @@ router.post("/makeInvoiceSponsor/:id", auth(["boutique"]), async (req, res) => {
       amount,
       currency: "eur"
     };
+
+    console.log("here", Math.round(invoice.amount * 100))
 
      const paymentIntent = await stripe.paymentIntents.create({
       amount:Math.round(invoice.amount * 100),

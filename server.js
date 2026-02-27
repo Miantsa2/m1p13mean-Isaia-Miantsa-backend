@@ -13,7 +13,22 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-app.use(cors());
+const allowedOrigins = [
+  'http://localhost:4200',
+  'https://m1p13mean-miantsa-isaia.netlify.app'
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
+}));
+
 app.use(express.json());
 
 // Session
@@ -21,6 +36,10 @@ app.use(session({
   secret: 'tonSecret',
   resave: false,
   saveUninitialized: true,
+  cookie: {
+    secure: true,     // obligatoire en production (HTTPS)
+    sameSite: 'none'  // obligatoire pour frontend Netlify
+  }
 }));
 
 // Passport
