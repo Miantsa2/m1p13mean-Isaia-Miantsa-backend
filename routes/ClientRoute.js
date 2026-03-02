@@ -7,7 +7,7 @@ const auth= require('../middlewares/Auth');
 
 
 // Supprimer 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', auth(["admin"]), async (req, res) => {
  try {
     await Client.findByIdAndDelete(req.params.id);
     res.json({ message: "Client supprimé" });
@@ -18,7 +18,7 @@ router.delete('/:id', async (req, res) => {
 
 
 //lire tous les clients
-router.get('/', async (req, res) => {
+router.get('/', auth(["admin", "client", "boutique"]), async (req, res) => {
  try {
  const clients = await Client.find();
  res.json(clients);
@@ -29,7 +29,7 @@ router.get('/', async (req, res) => {
 module.exports = router;
 
 // get client par le user connecté
-router.get("/user/:userId", async (req, res) => {
+router.get("/user/:userId", auth(["admin", "client", "boutique"]), async (req, res) => {
     try {
       console.log("Recherche pour userId:", req.params.userId);
       const client = await Client.findOne({ user: req.params.userId });
