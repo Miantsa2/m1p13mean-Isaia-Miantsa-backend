@@ -23,7 +23,7 @@ router.get("/getCenter", async (req, res) => {
 });
 
 
-router.put("/updateCenter/:id", async (req, res) => {
+router.put("/updateCenter/:id", auth(["admin"]), async (req, res) => {
   try {
     const updatedCentre = await Centre.findByIdAndUpdate(
       req.params.id,
@@ -79,7 +79,7 @@ router.delete("/deleteCenter/:id",auth(["admin"]), async (req, res) => {
 });
 
 
-router.put('/readNotif/:id/notifications/lue', async (req, res) => {
+router.put('/readNotif/:id/notifications/lue', auth(["admin"]), async (req, res) => {
     try {
         const result = await Centre.updateOne(
             { _id: req.params.id },
@@ -97,7 +97,7 @@ router.put('/readNotif/:id/notifications/lue', async (req, res) => {
 });
 
 
-router.put("/updateNotif/:id", auth([]), async (req, res) => {
+router.put("/updateNotif/:id", auth(["admin", "boutique"]), async (req, res) => {
   try {
     const { description, titre } = req.body;
 
