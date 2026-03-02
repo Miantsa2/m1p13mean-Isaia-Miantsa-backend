@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
+const auth = require('../middlewares/Auth');
 
 // Lire tous les users
 router.get('/', auth(["admin", "boutique", "client"]), async (req, res) => {

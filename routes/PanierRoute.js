@@ -4,6 +4,7 @@ const Panier = require("../models/Panier");
 const Stock = require("../models/Stock");
 const Produit = require("../models/Produit");
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const auth = require('../middlewares/Auth');
 
 
 // 1. AJOUTER
