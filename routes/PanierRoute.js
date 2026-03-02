@@ -286,22 +286,39 @@ router.get("/makeInvoice/cart/:id", auth(["client", "boutique"]), async (req, re
     }
 
     let total = 0;
+    const maintenant = new Date();
 
     const produits = panier.produits.map(item => {
-      if (!item.id) return null; // ignore si produit supprimé
-      const prix = item.id.prix || 0;
+      if (!item.id) return null;
+
+      const produitData = item.id;
+      let prixApplique = produitData.prix || 0; // Prix de base par défaut
+
+      if (produitData.promotions && produitData.promotions.pourcentage > 0) {
+        const { pourcentage, dateDebut, dateFin } = produitData.promotions;
+        
+        const debut = new Date(dateDebut);
+        const fin = new Date(dateFin);
+
+        if (maintenant >= debut && maintenant <= fin) {
+          prixApplique = prixApplique * (1 - pourcentage / 100);
+        }
+      }
+      // -------------------------------------
+
       const quantite = item.quantite || 0;
-      const subtotal = prix * quantite;
+      const subtotal = prixApplique * quantite;
       total += subtotal;
 
       return {
-        produitId: item.id._id,
-        nom: item.id.nom,
+        produitId: produitData._id,
+        nom: produitData.nom,
         quantite,
-        prixUnitaire: prix,
-        subtotal
+        prixUnitaire: Math.round(prixApplique * 100) / 100, 
+        subtotal: Math.round(subtotal * 100) / 100,
+        enPromo: prixApplique < produitData.prix 
       };
-    }).filter(Boolean); 
+    }).filter(Boolean);
 
     // Livraison
     let livraison = 0;
