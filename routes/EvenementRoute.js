@@ -44,31 +44,28 @@ router.put("/acceptEvent/:id", auth(["admin"]), async (req, res) => {
         populate: { path: "user" }
       });
 
-    event.statut = "approuved";
-
-    if (!event.email_envoye) {
-
-      res.status(200).json({
-        message: "Événement accepté",
-        event
-      });
-
-      sendEventAcceptedMail(event.boutique, event)
-        .then(async () => {
-          event.email_envoye = true;
-          await event.save();
-        })
-        .catch(console.error);
-
-      return;
+    if (!event) {
+      return res.status(404).json({ message: "Event introuvable" });
     }
 
+    event.statut = "approuved"; 
     await event.save();
 
     res.status(200).json({
       message: "Événement accepté",
       event
     });
+
+    if (!event.email_envoye) {
+      sendEventAcceptedMail(event.boutique, event)
+        .then(async () => {
+          event.email_envoye = true;
+          await event.save();
+        })
+        .catch(err => {
+          console.error("Erreur envoi mail:", err);
+        });
+    }
 
   } catch (err) {
     console.error(err);
