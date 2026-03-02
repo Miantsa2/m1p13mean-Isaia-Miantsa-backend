@@ -285,7 +285,7 @@ router.get("/FilterEventStore", auth(["admin", "boutique"]), async (req, res) =>
     }
 });
 
-router.get("/getEventByBoutiqueIdandStatut/:boutiqueId", auth(["admin", "boutique"]), async (req, res) => {
+router.get("/getEventByBoutiqueIdandStatut/:boutiqueId", auth(["admin", "boutique","client"]), async (req, res) => {
   try {
     const { boutiqueId } = req.params;
     const { statut } = req.query;

@@ -182,7 +182,7 @@ router.delete("/deleteBoutique/:id", auth(["admin"]), async (req, res) => {
   }
 });
 
-router.put("/updateNotif/:id", auth(["boutique", "admin"]), async (req, res) => {
+router.put("/updateNotif/:id", auth(["boutique", "admin", "client"]), async (req, res) => {
   try {
     const { description, titre } = req.body;
 
