@@ -7,7 +7,7 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 
 // 1. AJOUTER
-router.post("/add", async (req, res) => {
+router.post("/add", auth(["client"]), async (req, res) => {
     try {
         const { clientId, produitId, prix } = req.body;
         
@@ -54,7 +54,7 @@ router.post("/add", async (req, res) => {
 });
 
 // 2. UPDATE QUANTITÉ 
-router.put("/update-quantity", async (req, res) => {
+router.put("/update-quantity", auth(["client"]), async (req, res) => {
     const { clientId, produitId, nouvelleQuantite, prix } = req.body;
     const panier = await Panier.findOne({ client: clientId, statut: "en_cours" });
     
@@ -68,7 +68,7 @@ router.put("/update-quantity", async (req, res) => {
 });
 
 // 3. Supprimer un produit
-router.delete("/remove-product/:clientId/:produitId", async (req, res) => {
+router.delete("/remove-product/:clientId/:produitId", auth(["client"]), async (req, res) => {
     try {
         const { clientId, produitId } = req.params;
 
@@ -93,13 +93,13 @@ router.delete("/remove-product/:clientId/:produitId", async (req, res) => {
 });
 
 // 4. Vide le panier
-router.delete("/clear/:clientId", async (req, res) => {
+router.delete("/clear/:clientId", auth(["client"]), async (req, res) => {
     await Panier.findOneAndDelete({ client: req.params.clientId, statut: "en_cours" });
     res.status(200).json({ message: "Deleted cart" });
 });
 
 // 5. Récupérer les paniers validés d'un client
-router.get("/client/:clientId", async (req, res) => {
+router.get("/client/:clientId", auth(["boutique", "client"]), async (req, res) => {
   try {
     const { clientId } = req.params;
     const paniers = await Panier.find({ client: clientId, statut: "valide" })
@@ -138,7 +138,7 @@ router.get("/client/:clientId", async (req, res) => {
 });
 
 // 6. Validation d'un panier
-router.post("/validate", async (req, res) => {
+router.post("/validate", auth(["client"]), async (req, res) => {
     try {
         const { clientId } = req.body;
         const panier = await Panier.findOne({ client: clientId, statut: "en_cours" }).populate("produits.id");
@@ -171,7 +171,7 @@ router.post("/validate", async (req, res) => {
 });
 
 // 7. Pour récupérer le panier en cours
-router.get("/my-cart/:clientId", async (req, res) => {
+router.get("/my-cart/:clientId", auth(["client", "boutique"]), async (req, res) => {
     try {
         const panier = await Panier.findOne({ 
             client: req.params.clientId, 
@@ -188,7 +188,7 @@ router.get("/my-cart/:clientId", async (req, res) => {
 });
 
 // 8. Pour ne pas dépasser les quantités en stock
-router.get("/check-stock/:produitId", async (req, res) => {
+router.get("/check-stock/:produitId", auth(["boutique", "client"]), async (req, res) => {
     try {
         const p = await Produit.findById(req.params.produitId);
         if (!p) return res.status(404).json({ message: "Product not found" });
@@ -211,7 +211,7 @@ router.get("/check-stock/:produitId", async (req, res) => {
 
 
 // Ajouter ou modifier la localisation de récupération
-router.put("/set-recuperation/:panierId", async (req, res) => {
+router.put("/set-recuperation/:panierId", auth(["boutique", "client"]), async (req, res) => {
   try {
     const { panierId } = req.params;
     const { coo_x, coo_y } = req.body;
@@ -275,7 +275,7 @@ function calculateDeliveryPrice(lat2, lon2){
 }
 
 
-router.get("/makeInvoice/cart/:id", async (req, res) => {
+router.get("/makeInvoice/cart/:id", auth(["client", "boutique"]), async (req, res) => {
   try {
     const panier = await Panier.findById(req.params.id)
       .populate("produits.id"); // <-- ici on utilise "id"
@@ -335,7 +335,7 @@ router.get("/makeInvoice/cart/:id", async (req, res) => {
 });
 
 // Pour avoir les produits selon les paniers validés pour chaque boutique
-router.get("/boutique/:boutiqueId", async (req, res) => {
+router.get("/boutique/:boutiqueId", auth(["boutique", "client"]), async (req, res) => {
     try {
         const { boutiqueId } = req.params;
 
@@ -377,7 +377,7 @@ router.get("/boutique/:boutiqueId", async (req, res) => {
 });
 
 // update du delivery
-router.put("/update-delivery/:panierId/:produitId", async (req, res) => {
+router.put("/update-delivery/:panierId/:produitId", auth(["boutique"]), async (req, res) => {
   try {
     const { panierId, produitId } = req.params;
     const { date_recuperation } = req.body;
@@ -397,7 +397,7 @@ router.put("/update-delivery/:panierId/:produitId", async (req, res) => {
 });
 
 // Supprimer un panier spécifique par son ID
-router.delete("/delete-cart/:id", async (req, res) => {
+router.delete("/delete-cart/:id", auth(["client", "boutique"]), async (req, res) => {
     try {
         const result = await Panier.findByIdAndDelete(req.params.id);
         
@@ -413,7 +413,7 @@ router.delete("/delete-cart/:id", async (req, res) => {
 });
 
 // click sur Check now
-router.patch("/check-item/:panierId/:produitId", async (req, res) => {
+router.patch("/check-item/:panierId/:produitId", auth(["boutique"]), async (req, res) => {
     try {
         const { panierId, produitId } = req.params;
         
@@ -431,7 +431,7 @@ router.patch("/check-item/:panierId/:produitId", async (req, res) => {
     }
 });
 
-router.get("/panier/:clientId", async (req, res) => {
+router.get("/panier/:clientId", auth(["client", "boutique"]), async (req, res) => {
   try {
     const { clientId } = req.params;
     const paniers = await Panier.find({ client: clientId, statut: "valide" })

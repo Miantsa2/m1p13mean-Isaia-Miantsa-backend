@@ -4,7 +4,7 @@ const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 
 // Lire tous les users
-router.get('/', async (req, res) => {
+router.get('/', auth(["admin", "boutique", "client"]), async (req, res) => {
   try {
     const users = await User.find();
     res.json(users);
@@ -14,7 +14,7 @@ router.get('/', async (req, res) => {
 });
 
 // Créer un user
-router.post('/', async (req, res) => {
+router.post('/', auth(["admin", "client"]), async (req, res) => {
   try {
     const hash = await bcrypt.hash(req.body.password, 10);
 
@@ -32,7 +32,7 @@ router.post('/', async (req, res) => {
 });
 
 // Mettre à jour un user
-router.put('/:id', async (req, res) => {
+router.put('/:id', auth(["admin"]), async (req, res) => {
   try {
     const user = await User.findByIdAndUpdate(
       req.params.id,
@@ -46,7 +46,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // Supprimer un user
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', auth(["admin"]), async (req, res) => {
   try {
     await User.findByIdAndDelete(req.params.id);
     res.json({ message: "User supprimé" });

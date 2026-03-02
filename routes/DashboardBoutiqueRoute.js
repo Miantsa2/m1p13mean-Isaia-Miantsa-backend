@@ -3,7 +3,7 @@ const router = express.Router();
 const Panier = require("../models/Panier");
 
 // Ventes Annuelles filtrées par année 
-router.get("/ventes-annuelles/:boutiqueId", async (req, res) => {
+router.get("/ventes-annuelles/:boutiqueId", auth(["boutique"]), async (req, res) => {
     try {
         const { boutiqueId } = req.params;
         const year = parseInt(req.query.year) || new Date().getFullYear();
@@ -42,7 +42,7 @@ router.get("/ventes-annuelles/:boutiqueId", async (req, res) => {
 });
 
 // Top Produits filtrés par année et mois 
-router.get("/top-produits/:boutiqueId", async (req, res) => {
+router.get("/top-produits/:boutiqueId", auth(["boutique"]), async (req, res) => {
     try {
         const { boutiqueId } = req.params;
         const { mois, year } = req.query;
@@ -89,7 +89,7 @@ router.get("/top-produits/:boutiqueId", async (req, res) => {
 });
 
 // Dépense Moyenne Clients filtrée par année 
-router.get("/depense-moyenne-clients/:boutiqueId", async (req, res) => {
+router.get("/depense-moyenne-clients/:boutiqueId", auth(["boutique"]), async (req, res) => {
     try {
         const { boutiqueId } = req.params;
         const year = parseInt(req.query.year) || new Date().getFullYear();

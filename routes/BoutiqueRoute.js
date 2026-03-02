@@ -44,7 +44,7 @@ router.get("/getBoutique/:id", async (req, res) => {
 
 
 // Lire une boutique par sa connection
-router.get("/getBoutiqueByUser", auth([]), async (req, res) => {
+router.get("/getBoutiqueByUser", auth(["boutique"]), async (req, res) => {
   try {
     const boutique = await Boutique.findOne({ user: req.user.id })
       .populate("user")
@@ -182,7 +182,7 @@ router.delete("/deleteBoutique/:id", auth(["admin"]), async (req, res) => {
   }
 });
 
-router.put("/updateNotif/:id", auth([]), async (req, res) => {
+router.put("/updateNotif/:id", auth(["boutique", "admin"]), async (req, res) => {
   try {
     const { description, titre } = req.body;
 
@@ -223,7 +223,7 @@ router.put("/updateNotif/:id", auth([]), async (req, res) => {
 
 
 
-router.put('/readNotif/:id/notifications/lue', async (req, res) => {
+router.put('/readNotif/:id/notifications/lue', auth(["boutique"]), async (req, res) => {
     try {
         const result = await Boutique.updateOne(
             { _id: req.params.id },
@@ -242,7 +242,7 @@ router.put('/readNotif/:id/notifications/lue', async (req, res) => {
 });
 
 
-router.get("/loyer/adminPay/:id", async (req, res) => {
+router.get("/loyer/adminPay/:id",auth(["admin"]),async (req, res) => {
   try {
     const boutique = await Boutique.findById(req.params.id).populate("salle");
     if (!boutique) return res.status(404).json({ message: "Boutique not found" });
@@ -262,7 +262,7 @@ router.get("/loyer/adminPay/:id", async (req, res) => {
 
 
 //calcule loyer
-router.get("/loyer/:id", async (req, res) => {
+router.get("/loyer/:id", auth(["boutique", "admin"]), async (req, res) => {
   try {
     const boutique = await Boutique.findById(req.params.id).populate("salle");
     if (!boutique) return res.status(404).json({ message: "Boutique not found" });
@@ -297,7 +297,7 @@ router.get("/loyer/:id", async (req, res) => {
 
 
 
-router.get('/loyernonpayees', async (req, res) => {
+router.get('/loyernonpayees', auth(["admin", "boutique"]), async (req, res) => {
   try {
     const { mois, annee, statut } = req.query;  
 
@@ -326,7 +326,7 @@ router.get('/loyernonpayees', async (req, res) => {
 
 
 
-router.get('/loyerpaye', async (req, res) => {
+router.get('/loyerpaye', auth(["boutique", "admin"]), async (req, res) => {
   const { mois, annee } = req.query;
 
   if (!mois || !annee) {

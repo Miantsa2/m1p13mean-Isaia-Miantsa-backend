@@ -36,7 +36,7 @@ const User = require("../models/User");
 //   }
 // });
 
-router.put("/acceptEvent/:id", async (req, res) => {
+router.put("/acceptEvent/:id", auth(["admin"]), async (req, res) => {
   try {
     const event = await Evenement.findById(req.params.id)
       .populate({
@@ -80,7 +80,7 @@ router.put("/acceptEvent/:id", async (req, res) => {
 });
 
 
-router.post("/createEvent", async (req, res) => {
+router.post("/createEvent", auth(["admin", "boutique"]), async (req, res) => {
     try {
         const { dateDebut, dateFin } = req.body;
         
@@ -106,7 +106,7 @@ router.get("/getAllEvent", async (req, res) => {
     }
 });
 
-router.get("/getEventById/:id", async (req, res) => {
+router.get("/getEventById/:id", auth(["admin", "boutique"]), async (req, res) => {
     try {
         const ev = await Evenement.findById(req.params.id)
             .populate("boutique");
@@ -131,7 +131,7 @@ router.get("/getEventByBoutiqueId/:boutiqueId", async (req, res) => {
 });
 
 
-router.get("/getEventByStatut/:statut", async (req, res) => {
+router.get("/getEventByStatut/:statut", auth(["admin", "boutique"]), async (req, res) => {
   try {
     const events = await Evenement.find({
       statut: req.params.statut
@@ -145,7 +145,7 @@ router.get("/getEventByStatut/:statut", async (req, res) => {
 });
 
 
-router.put("/updateEvent/:id", async (req, res) => {
+router.put("/updateEvent/:id", auth(["admin", "boutique"]), async (req, res) => {
     try {
         const updatedEv = await Evenement.findByIdAndUpdate(
             req.params.id,
@@ -158,7 +158,7 @@ router.put("/updateEvent/:id", async (req, res) => {
     }
 });
 
-router.delete("/deleteEvent/:id", async (req, res) => {
+router.delete("/deleteEvent/:id", auth(["boutique", "admin"]), async (req, res) => {
     try {
         const deletedEv = await Evenement.findByIdAndDelete(req.params.id);
         if (!deletedEv) return res.status(404).json({ message: "Événement introuvable." });
@@ -212,7 +212,7 @@ router.get("/getEvent", async (req, res) => {
     }
 });
 
-router.get("/SortEvent", async (req, res) => {
+router.get("/SortEvent", auth(["admin"]), async (req, res) => {
     try {
         const { order } = req.query; 
         const sortOrder = order === "asc" ? 1 : -1;
@@ -233,7 +233,7 @@ router.get("/SortEvent", async (req, res) => {
 
 
 
-router.get("/FilterEventCenter", async (req, res) => {
+router.get("/FilterEventCenter", auth(["admin"]), async (req, res) => {
     try {
 
         let query = { 
@@ -260,7 +260,7 @@ router.get("/FilterEventCenter", async (req, res) => {
 });
 
 
-router.get("/FilterEventStore", async (req, res) => {
+router.get("/FilterEventStore", auth(["admin", "boutique"]), async (req, res) => {
     try {
 
          query = {
@@ -286,7 +286,7 @@ router.get("/FilterEventStore", async (req, res) => {
     }
 });
 
-router.get("/getEventByBoutiqueIdandStatut/:boutiqueId", async (req, res) => {
+router.get("/getEventByBoutiqueIdandStatut/:boutiqueId", auth(["admin", "boutique"]), async (req, res) => {
   try {
     const { boutiqueId } = req.params;
     const { statut } = req.query;
@@ -304,8 +304,6 @@ router.get("/getEventByBoutiqueIdandStatut/:boutiqueId", async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 });
-
-
 
 
 module.exports = router;

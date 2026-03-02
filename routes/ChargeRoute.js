@@ -94,7 +94,7 @@ router.get("/filterCharge", auth(["boutique"]), async (req, res) => {
 });
 
 
-router.get("/getChargeByBoutiqueId/:boutiqueId", async (req, res) => {
+router.get("/getChargeByBoutiqueId/:boutiqueId", auth(["admin", "boutique"]), async (req, res) => {
   try {
     const charges = await Charge.find({
       boutique: req.params.boutiqueId
@@ -107,7 +107,7 @@ router.get("/getChargeByBoutiqueId/:boutiqueId", async (req, res) => {
 });
 
 
-router.get('/isloyerpaye/:id', async (req, res) => {
+router.get('/isloyerpaye/:id', auth(["admin", "boutique"]), async (req, res) => {
   try {
     const { mois, annee } = req.query;
 
@@ -159,7 +159,7 @@ router.get('/isloyerpaye/:id', async (req, res) => {
 
 
 //calcule loyer
-router.get("/loyer/:id", async (req, res) => {
+router.get("/loyer/:id", auth(["admin", "boutique"]), async (req, res) => {
   try {
     const boutique = await boutique.findById(req.params.id).populate("salle");
     if (!boutique) return res.status(404).json({ message: "Boutique not found" });
@@ -187,7 +187,7 @@ router.get("/loyer/:id", async (req, res) => {
 
 
 
-router.get('/getChargeLoyer/:id', async (req, res) => {
+router.get('/getChargeLoyer/:id', auth(["boutique"]), async (req, res) => {
   try {
     const { mois, annee } = req.query;
 
@@ -212,12 +212,6 @@ router.get('/getChargeLoyer/:id', async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 });
-
-
-
-
-
-
 
 
 module.exports = router;
