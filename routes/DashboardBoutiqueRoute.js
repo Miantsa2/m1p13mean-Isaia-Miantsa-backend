@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const Panier = require("../models/Panier");
+const auth = require('../middlewares/Auth');
 
 // Ventes Annuelles filtrées par année 
 router.get("/ventes-annuelles/:boutiqueId", auth(["boutique"]), async (req, res) => {

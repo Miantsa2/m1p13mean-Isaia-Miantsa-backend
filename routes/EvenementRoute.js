@@ -3,6 +3,8 @@ const router = express.Router();
 const Evenement = require("../models/Evenement");
 const { sendEventAcceptedMail } = require("../controllers/MailController");
 const User = require("../models/User");
+const auth = require('../middlewares/Auth');
+
 
 // router.put("/acceptEvent/:id", async (req, res) => {
 //   try {
