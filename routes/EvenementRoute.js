@@ -130,7 +130,7 @@ router.get("/getEventByBoutiqueId/:boutiqueId", async (req, res) => {
 });
 
 
-router.get("/getEventByStatut/:statut", auth(["admin", "boutique"]), async (req, res) => {
+router.get("/getEventByStatut/:statut", auth(["admin", "boutique","client"]), async (req, res) => {
   try {
     const events = await Evenement.find({
       statut: req.params.statut

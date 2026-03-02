@@ -23,7 +23,7 @@ router.post("/createCharge",auth(["boutique", "admin"]), async (req, res) => {
   }
 });
 
-router.get("/getChargeById/:id",auth(["boutique"]), async (req, res) => {
+router.get("/getChargeById/:id",auth(["admin","boutique"]), async (req, res) => {
   try {
     const charge = await Charge.findById(req.params.id);
     if (!charge) {
@@ -37,7 +37,7 @@ router.get("/getChargeById/:id",auth(["boutique"]), async (req, res) => {
 
 
 
-router.put("/updateCharge/:id", auth(["boutique"]), async (req, res) => {
+router.put("/updateCharge/:id", auth(["admin","boutique"]), async (req, res) => {
   try {
     const charge = await Charge.findByIdAndUpdate(
       req.params.id,
@@ -187,7 +187,7 @@ router.get("/loyer/:id", auth(["admin", "boutique"]), async (req, res) => {
 
 
 
-router.get('/getChargeLoyer/:id', auth(["boutique"]), async (req, res) => {
+router.get('/getChargeLoyer/:id', auth(["admin","boutique"]), async (req, res) => {
   try {
     const { mois, annee } = req.query;
 

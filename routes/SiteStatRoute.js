@@ -29,7 +29,7 @@ function getDateRange(month, year) {
 
 
 
-router.post('/visit', auth(["admin", "client", "boutique"]), async (req, res) => {
+router.post('/visit', async (req, res) => {
   try {
     let stat = await SiteStat.findOne();
     if (!stat) {
